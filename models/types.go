@@ -1,4 +1,4 @@
-package main
+package models
 
 import (
 	"context"
@@ -6,41 +6,49 @@ import (
 	eos "github.com/eoscanada/eos-go"
 )
 
+// NameKV struct
 type NameKV struct {
 	Key   string   `json:"key"`
 	Value eos.Name `json:"value"`
 }
 
+// StringKV struct
 type StringKV struct {
 	Key   string `json:"key"`
 	Value string `json:"value"`
 }
 
+// AssetKV struct
 type AssetKV struct {
 	Key   string    `json:"key"`
 	Value eos.Asset `json:"value"`
 }
 
+// TimePointKV struct
 type TimePointKV struct {
 	Key   string             `json:"key"`
 	Value eos.BlockTimestamp `json:"value"`
 }
 
+// IntKV struct
 type IntKV struct {
 	Key   string `json:"key"`
 	Value uint64 `json:"value"`
 }
 
+// TrxKV struct
 type TrxKV struct {
 	Key   string          `json:"key"`
 	Value eos.Transaction `json:"value"`
 }
 
+// FloatKV struct
 type FloatKV struct {
 	Key   string       `json:"key"`
 	Value eos.Float128 `json:"value"`
 }
 
+// Object struct
 type Object struct {
 	ID           uint64             `json:"id"`
 	Names        []NameKV           `json:"names"`
@@ -54,6 +62,7 @@ type Object struct {
 	UpdatedDate  eos.BlockTimestamp `json:"updated_date"`
 }
 
+// LoadObjects from a provided eos.API and scope
 func LoadObjects(ctx context.Context, api *eos.API, scope string) []Object {
 	var objects []Object
 	var request eos.GetTableRowsRequest
@@ -67,6 +76,7 @@ func LoadObjects(ctx context.Context, api *eos.API, scope string) []Object {
 	return objects
 }
 
+// DAOObject is a generic object from the objects table
 type DAOObject struct {
 	ID           uint64                        `json:"id"`
 	Names        map[string]eos.Name           `json:"names"`
@@ -80,6 +90,7 @@ type DAOObject struct {
 	UpdatedDate  eos.BlockTimestamp            `json:"updated_date"`
 }
 
+// ToDAOObject Converts a very generic Object to one of type DAO Object
 func ToDAOObject(objs Object) DAOObject {
 
 	var daoObject DAOObject

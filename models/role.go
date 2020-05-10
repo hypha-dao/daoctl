@@ -1,8 +1,7 @@
-package main
+package models
 
 import (
 	"context"
-	"fmt"
 	"strconv"
 
 	"github.com/alexeyco/simpletable"
@@ -26,23 +25,8 @@ type Role struct {
 	CreatedDate      eos.BlockTimestamp
 }
 
-func roleHeader() *simpletable.Header {
-	return &simpletable.Header{
-		Cells: []*simpletable.Cell{
-			{Align: simpletable.AlignCenter, Text: "#"},
-			{Align: simpletable.AlignCenter, Text: "Title"},
-			{Align: simpletable.AlignCenter, Text: "Owner"},
-			{Align: simpletable.AlignCenter, Text: "Min Time %"},
-			{Align: simpletable.AlignCenter, Text: "Min Def %"},
-			{Align: simpletable.AlignCenter, Text: "FTE Cap"},
-			{Align: simpletable.AlignCenter, Text: "Annual USD"},
-			{Align: simpletable.AlignCenter, Text: "Start Date"},
-			{Align: simpletable.AlignCenter, Text: "End Date"},
-		},
-	}
-}
-
-func toRole(daoObj DAOObject, periods []Period) Role {
+// NewRole creates a new Role instance based on the DAOObject
+func NewRole(daoObj DAOObject, periods []Period) Role {
 	var r Role
 	r.ID = daoObj.ID
 	r.Title = daoObj.Strings["title"]
@@ -66,7 +50,7 @@ func ProposedRoles(ctx context.Context, api *eos.API, periods []Period) []Role {
 	for index := range objects {
 		daoObject := ToDAOObject(objects[index])
 		if daoObject.Names["type"] == "role" {
-			role := toRole(ToDAOObject(objects[index]), periods)
+			role := NewRole(ToDAOObject(objects[index]), periods)
 			role.Approved = true
 			roles = append(roles, role)
 		}
@@ -79,14 +63,31 @@ func Roles(ctx context.Context, api *eos.API, periods []Period) []Role {
 	objects := LoadObjects(ctx, api, "role")
 	var roles []Role
 	for index := range objects {
-		role := toRole(ToDAOObject(objects[index]), periods)
+		role := NewRole(ToDAOObject(objects[index]), periods)
 		role.Approved = true
 		roles = append(roles, role)
 	}
 	return roles
 }
 
-func roleTable(roles []Role) string {
+func roleHeader() *simpletable.Header {
+	return &simpletable.Header{
+		Cells: []*simpletable.Cell{
+			{Align: simpletable.AlignCenter, Text: "#"},
+			{Align: simpletable.AlignCenter, Text: "Title"},
+			{Align: simpletable.AlignCenter, Text: "Owner"},
+			{Align: simpletable.AlignCenter, Text: "Min Time %"},
+			{Align: simpletable.AlignCenter, Text: "Min Def %"},
+			{Align: simpletable.AlignCenter, Text: "FTE Cap"},
+			{Align: simpletable.AlignCenter, Text: "Annual USD"},
+			{Align: simpletable.AlignCenter, Text: "Start Date"},
+			{Align: simpletable.AlignCenter, Text: "End Date"},
+		},
+	}
+}
+
+// RoleTable returns a string representing an output table for a Role array
+func RoleTable(roles []Role) string {
 
 	table := simpletable.New()
 	table.Header = roleHeader()
@@ -121,16 +122,4 @@ func roleTable(roles []Role) string {
 
 	table.SetStyle(simpletable.StyleCompactLite)
 	return table.String()
-}
-
-// PrintRoles prints a table with all active roles
-func PrintRoles(ctx context.Context, api *eos.API, periods []Period, includeProposals bool) {
-
-	roles := Roles(ctx, api, periods)
-	fmt.Println("\n\n" + roleTable(roles) + "\n\n")
-
-	if includeProposals {
-		propRoles := ProposedRoles(ctx, api, periods)
-		fmt.Println("\n\n" + roleTable(propRoles) + "\n\n")
-	}
 }
