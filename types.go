@@ -1,7 +1,9 @@
 package main
 
 import (
-	"github.com/eoscanada/eos-go"
+	"context"
+
+	eos "github.com/eoscanada/eos-go"
 )
 
 type NameKV struct {
@@ -52,6 +54,19 @@ type Object struct {
 	UpdatedDate  eos.BlockTimestamp `json:"updated_date"`
 }
 
+func LoadObjects(ctx context.Context, api *eos.API, scope string) []Object {
+	var objects []Object
+	var request eos.GetTableRowsRequest
+	request.Code = "dao.hypha"
+	request.Scope = scope
+	request.Table = "objects"
+	request.Limit = 1000
+	request.JSON = true
+	response, _ := api.GetTableRows(ctx, request)
+	response.JSONToStructs(&objects)
+	return objects
+}
+
 type DAOObject struct {
 	ID           uint64                        `json:"id"`
 	Names        map[string]eos.Name           `json:"names"`
@@ -97,6 +112,7 @@ func ToDAOObject(objs Object) DAOObject {
 	for index, element := range objs.Strings {
 		daoObject.Strings[element.Key] = objs.Strings[index].Value
 	}
+	daoObject.ID = objs.ID
 	daoObject.CreatedDate = objs.CreatedDate
 	daoObject.UpdatedDate = objs.UpdatedDate
 	return daoObject

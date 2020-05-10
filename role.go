@@ -1,0 +1,136 @@
+package main
+
+import (
+	"context"
+	"fmt"
+	"strconv"
+
+	"github.com/alexeyco/simpletable"
+	eos "github.com/eoscanada/eos-go"
+)
+
+// Role is an approved or proposed role for the DAO
+type Role struct {
+	ID               uint64
+	Approved         bool
+	Owner            eos.Name
+	Title            string
+	Description      string
+	URL              string
+	AnnualUSDSalary  eos.Asset
+	MinTime          float64
+	MinDeferred      float64
+	FullTimeCapacity float64
+	StartPeriod      Period
+	EndPeriod        Period
+	CreatedDate      eos.BlockTimestamp
+}
+
+func roleHeader() *simpletable.Header {
+	return &simpletable.Header{
+		Cells: []*simpletable.Cell{
+			{Align: simpletable.AlignCenter, Text: "#"},
+			{Align: simpletable.AlignCenter, Text: "Title"},
+			{Align: simpletable.AlignCenter, Text: "Owner"},
+			{Align: simpletable.AlignCenter, Text: "Min Time %"},
+			{Align: simpletable.AlignCenter, Text: "Min Def %"},
+			{Align: simpletable.AlignCenter, Text: "FTE Cap"},
+			{Align: simpletable.AlignCenter, Text: "Annual USD"},
+			{Align: simpletable.AlignCenter, Text: "Start Date"},
+			{Align: simpletable.AlignCenter, Text: "End Date"},
+		},
+	}
+}
+
+func toRole(daoObj DAOObject, periods []Period) Role {
+	var r Role
+	r.ID = daoObj.ID
+	r.Title = daoObj.Strings["title"]
+	r.Owner = daoObj.Names["owner"]
+	r.Description = daoObj.Strings["description"]
+	r.URL = daoObj.Strings["url"]
+	r.AnnualUSDSalary = daoObj.Assets["annual_usd_salary"]
+	r.MinTime = float64(daoObj.Ints["min_time_share_x100"]) / 100
+	r.MinDeferred = float64(daoObj.Ints["min_deferred_x100"]) / 100
+	r.FullTimeCapacity = float64(daoObj.Ints["fulltime_capacity_x100"]) / 100
+	r.StartPeriod = periods[daoObj.Ints["start_period"]]
+	r.EndPeriod = periods[daoObj.Ints["end_period"]]
+	r.CreatedDate = daoObj.CreatedDate
+	return r
+}
+
+// ProposedRoles provides the set of active approved roles
+func ProposedRoles(ctx context.Context, api *eos.API, periods []Period) []Role {
+	objects := LoadObjects(ctx, api, "proposal")
+	var roles []Role
+	for index := range objects {
+		daoObject := ToDAOObject(objects[index])
+		if daoObject.Names["type"] == "role" {
+			role := toRole(ToDAOObject(objects[index]), periods)
+			role.Approved = true
+			roles = append(roles, role)
+		}
+	}
+	return roles
+}
+
+// Roles provides the set of active approved roles
+func Roles(ctx context.Context, api *eos.API, periods []Period) []Role {
+	objects := LoadObjects(ctx, api, "role")
+	var roles []Role
+	for index := range objects {
+		role := toRole(ToDAOObject(objects[index]), periods)
+		role.Approved = true
+		roles = append(roles, role)
+	}
+	return roles
+}
+
+func roleTable(roles []Role) string {
+
+	table := simpletable.New()
+	table.Header = roleHeader()
+
+	usdTotal, _ := eos.NewAssetFromString("0.00 USD")
+
+	for index := range roles {
+
+		usdTotal = usdTotal.Add(roles[index].AnnualUSDSalary)
+		r := []*simpletable.Cell{
+			{Align: simpletable.AlignCenter, Text: strconv.Itoa(int(roles[index].ID))},
+			{Align: simpletable.AlignLeft, Text: string(roles[index].Title)},
+			{Align: simpletable.AlignRight, Text: string(roles[index].Owner)},
+			{Align: simpletable.AlignRight, Text: strconv.FormatFloat(roles[index].MinTime*100, 'f', -1, 64)},
+			{Align: simpletable.AlignRight, Text: strconv.FormatFloat(roles[index].MinDeferred*100, 'f', -1, 64)},
+			{Align: simpletable.AlignRight, Text: strconv.FormatFloat(roles[index].FullTimeCapacity*100, 'f', -1, 64)},
+			{Align: simpletable.AlignRight, Text: roles[index].AnnualUSDSalary.String()},
+			{Align: simpletable.AlignRight, Text: roles[index].StartPeriod.StartTime.Time.Format("2006 Jan 02")},
+			{Align: simpletable.AlignRight, Text: roles[index].EndPeriod.EndTime.Time.Format("2006 Jan 02")},
+		}
+		table.Body.Cells = append(table.Body.Cells, r)
+	}
+
+	table.Footer = &simpletable.Footer{
+		Cells: []*simpletable.Cell{
+			{}, {}, {}, {}, {},
+			{Align: simpletable.AlignRight, Text: "Subtotal"},
+			{Align: simpletable.AlignRight, Text: usdTotal.String()},
+			{}, {},
+		},
+	}
+
+	table.SetStyle(simpletable.StyleCompactLite)
+	return table.String()
+}
+
+// PrintRoles prints a table with all active roles
+func PrintRoles(ctx context.Context, api *eos.API, periods []Period, includeProposals bool) {
+
+	roles := Roles(ctx, api, periods)
+	fmt.Println("\n\n" + roleTable(roles) + "\n\n")
+
+	if includeProposals {
+		propRoles := ProposedRoles(ctx, api, periods)
+		fmt.Println("\n\n" + roleTable(propRoles) + "\n\n")
+	}
+}
