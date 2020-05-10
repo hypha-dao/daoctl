@@ -15,5 +15,5 @@ func main() {
 	periods := LoadPeriods(api)
 	PrintAssignments(context.Background(), api, periods, true)
 	PrintRoles(context.Background(), api, periods, true)
-
+	PrintPayouts(context.Background(), api, periods, true)
 }
