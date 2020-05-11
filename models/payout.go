@@ -2,9 +2,7 @@ package models
 
 import (
 	"context"
-	"strconv"
 
-	"github.com/alexeyco/simpletable"
 	eos "github.com/eoscanada/eos-go"
 )
 
@@ -25,23 +23,6 @@ type Payout struct {
 	StartPeriod     Period
 	EndPeriod       Period
 	CreatedDate     eos.BlockTimestamp
-}
-
-func payoutHeader() *simpletable.Header {
-	return &simpletable.Header{
-		Cells: []*simpletable.Cell{
-			{Align: simpletable.AlignCenter, Text: "#"},
-			{Align: simpletable.AlignCenter, Text: "Receiver"},
-			{Align: simpletable.AlignCenter, Text: "Title"},
-			{Align: simpletable.AlignCenter, Text: "Deferred %"},
-			{Align: simpletable.AlignCenter, Text: "HUSD"},
-			{Align: simpletable.AlignCenter, Text: "HYPHA"},
-			{Align: simpletable.AlignCenter, Text: "HVOICE"},
-			{Align: simpletable.AlignCenter, Text: "Escrow SEEDS"},
-			{Align: simpletable.AlignCenter, Text: "Liquid SEEDS"},
-			{Align: simpletable.AlignCenter, Text: "Created Date"},
-		},
-	}
 }
 
 // NewPayout converts a generic DAO Object to a typed Payout
@@ -98,74 +79,4 @@ func Payouts(ctx context.Context, api *eos.API, periods []Period) []Payout {
 		payouts = append(payouts, payout)
 	}
 	return payouts
-}
-
-// PayoutTable is a simpleTable.Table object with payouts
-func PayoutTable(payouts []Payout) *simpletable.Table {
-
-	table := simpletable.New()
-	table.Header = payoutHeader()
-
-	husdTotal, _ := eos.NewAssetFromString("0.00 HUSD")
-	hvoiceTotal, _ := eos.NewAssetFromString("0.00 HVOICE")
-	hyphaTotal, _ := eos.NewAssetFromString("0.00 HYPHA")
-	seedsLiquidTotal, _ := eos.NewAssetFromString("0.0000 SEEDS")
-	seedsEscrowTotal, _ := eos.NewAssetFromString("0.0000 SEEDS")
-
-	for index := range payouts {
-
-		husdTotal = husdTotal.Add(payouts[index].Husd)
-		hyphaTotal = hyphaTotal.Add(payouts[index].Hypha)
-		hvoiceTotal = hvoiceTotal.Add(payouts[index].Hvoice)
-		seedsLiquidTotal = seedsLiquidTotal.Add(payouts[index].SeedsLiquid)
-		seedsEscrowTotal = seedsEscrowTotal.Add(payouts[index].SeedsEscrow)
-
-		AssetAsFloats := true
-		var husd, hypha, hvoice, seedsEscrow, seedsLiquid string
-		if AssetAsFloats {
-			husd = strconv.FormatFloat(float64(payouts[index].Husd.Amount/100), 'f', 2, 64)
-			hypha = strconv.FormatFloat(float64(payouts[index].Hypha.Amount/100), 'f', 2, 64)
-			hvoice = strconv.FormatFloat(float64(payouts[index].Hvoice.Amount/100), 'f', 2, 64)
-			seedsEscrow = strconv.FormatFloat(float64(payouts[index].SeedsEscrow.Amount/10000), 'f', 2, 64)
-			seedsLiquid = strconv.FormatFloat(float64(payouts[index].SeedsLiquid.Amount/10000), 'f', 2, 64)
-		} else {
-			husd = payouts[index].Husd.String()
-			hypha = payouts[index].Hypha.String()
-			hvoice = payouts[index].Hvoice.String()
-			seedsEscrow = payouts[index].SeedsEscrow.String()
-			seedsLiquid = payouts[index].SeedsLiquid.String()
-		}
-
-		r := []*simpletable.Cell{
-			{Align: simpletable.AlignCenter, Text: strconv.Itoa(int(payouts[index].ID))},
-			{Align: simpletable.AlignRight, Text: string(payouts[index].Receiver)},
-			{Align: simpletable.AlignLeft, Text: payouts[index].Title},
-			{Align: simpletable.AlignRight, Text: strconv.FormatFloat(payouts[index].DeferredPay*100, 'f', -1, 64)},
-			{Align: simpletable.AlignRight, Text: husd},
-			{Align: simpletable.AlignRight, Text: hypha},
-			{Align: simpletable.AlignRight, Text: hvoice},
-			{Align: simpletable.AlignRight, Text: seedsEscrow},
-			{Align: simpletable.AlignRight, Text: seedsLiquid},
-
-			{Align: simpletable.AlignRight, Text: payouts[index].CreatedDate.Time.Format("2006 Jan 02")},
-		}
-		table.Body.Cells = append(table.Body.Cells, r)
-	}
-
-	table.Footer = &simpletable.Footer{
-		Cells: []*simpletable.Cell{
-			{},
-			{},
-			{},
-			{Align: simpletable.AlignRight, Text: "Subtotal"},
-			{Align: simpletable.AlignRight, Text: husdTotal.String()},
-			{Align: simpletable.AlignRight, Text: hyphaTotal.String()},
-			{Align: simpletable.AlignRight, Text: hvoiceTotal.String()},
-			{Align: simpletable.AlignRight, Text: seedsEscrowTotal.String()},
-			{Align: simpletable.AlignRight, Text: seedsLiquidTotal.String()},
-			{},
-		},
-	}
-
-	return table
 }

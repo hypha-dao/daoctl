@@ -2,9 +2,7 @@ package models
 
 import (
 	"context"
-	"strconv"
 
-	"github.com/alexeyco/simpletable"
 	eos "github.com/eoscanada/eos-go"
 )
 
@@ -26,27 +24,6 @@ type Assignment struct {
 	StartPeriod         Period
 	EndPeriod           Period
 	CreatedDate         eos.BlockTimestamp
-}
-
-func assignmentHeader() *simpletable.Header {
-	return &simpletable.Header{
-		Cells: []*simpletable.Cell{
-			{Align: simpletable.AlignCenter, Text: "#"},
-			{Align: simpletable.AlignCenter, Text: "Assigned"},
-			{Align: simpletable.AlignCenter, Text: "Role"},
-			{Align: simpletable.AlignCenter, Text: "Role Annually"},
-			{Align: simpletable.AlignCenter, Text: "Time %"},
-			{Align: simpletable.AlignCenter, Text: "Deferred %"},
-			{Align: simpletable.AlignCenter, Text: "HUSD %"},
-			{Align: simpletable.AlignCenter, Text: "HUSD"},
-			{Align: simpletable.AlignCenter, Text: "HYPHA"},
-			{Align: simpletable.AlignCenter, Text: "HVOICE"},
-			{Align: simpletable.AlignCenter, Text: "Escrow SEEDS"},
-			{Align: simpletable.AlignCenter, Text: "Liquid SEEDS"},
-			{Align: simpletable.AlignCenter, Text: "Start Date"},
-			{Align: simpletable.AlignCenter, Text: "End Date"},
-		},
-	}
 }
 
 // NewAssignment converts a generic DAO Object to a typed Assignment
@@ -95,79 +72,4 @@ func Assignments(ctx context.Context, api *eos.API, roles []Role, periods []Peri
 		assignments = append(assignments, assignment)
 	}
 	return assignments
-}
-
-// AssignmentTable returns a string representing a table of the assignnments
-func AssignmentTable(assignments []Assignment) *simpletable.Table {
-
-	table := simpletable.New()
-	table.Header = assignmentHeader()
-
-	husdTotal, _ := eos.NewAssetFromString("0.00 HUSD")
-	hvoiceTotal, _ := eos.NewAssetFromString("0.00 HVOICE")
-	hyphaTotal, _ := eos.NewAssetFromString("0.00 HYPHA")
-	seedsLiquidTotal, _ := eos.NewAssetFromString("0.0000 SEEDS")
-	seedsEscrowTotal, _ := eos.NewAssetFromString("0.0000 SEEDS")
-
-	for index := range assignments {
-
-		husdTotal = husdTotal.Add(assignments[index].HusdPerPhase)
-		hyphaTotal = hyphaTotal.Add(assignments[index].HyphaPerPhase)
-		hvoiceTotal = hvoiceTotal.Add(assignments[index].HvoicePerPhase)
-		seedsLiquidTotal = seedsLiquidTotal.Add(assignments[index].SeedsLiquidPerPhase)
-		seedsEscrowTotal = seedsEscrowTotal.Add(assignments[index].SeedsEscrowPerPhase)
-
-		AssetAsFloats := true
-		var annualUsdSalary, husdPerPhase, hyphaPerPhase, hvoicePerPhase, seedsEscrowPerPhase, seedsLiquidPerPhase string
-		if AssetAsFloats {
-			annualUsdSalary = strconv.FormatFloat(float64(assignments[index].Role.AnnualUSDSalary.Amount/100), 'f', 2, 64)
-			husdPerPhase = strconv.FormatFloat(float64(assignments[index].HusdPerPhase.Amount/100), 'f', 2, 64)
-			hyphaPerPhase = strconv.FormatFloat(float64(assignments[index].HyphaPerPhase.Amount/100), 'f', 2, 64)
-			hvoicePerPhase = strconv.FormatFloat(float64(assignments[index].HvoicePerPhase.Amount/100), 'f', 2, 64)
-			seedsEscrowPerPhase = strconv.FormatFloat(float64(assignments[index].SeedsEscrowPerPhase.Amount/10000), 'f', 2, 64)
-			seedsLiquidPerPhase = strconv.FormatFloat(float64(assignments[index].SeedsLiquidPerPhase.Amount/10000), 'f', 2, 64)
-		} else {
-			annualUsdSalary = assignments[index].Role.AnnualUSDSalary.String()
-			husdPerPhase = assignments[index].HusdPerPhase.String()
-			hyphaPerPhase = assignments[index].HyphaPerPhase.String()
-			hvoicePerPhase = assignments[index].HvoicePerPhase.String()
-			seedsEscrowPerPhase = assignments[index].SeedsEscrowPerPhase.String()
-			seedsLiquidPerPhase = assignments[index].SeedsLiquidPerPhase.String()
-		}
-
-		r := []*simpletable.Cell{
-			{Align: simpletable.AlignCenter, Text: strconv.Itoa(int(assignments[index].ID))},
-			{Align: simpletable.AlignRight, Text: string(assignments[index].Assigned)},
-			{Align: simpletable.AlignLeft, Text: string(assignments[index].Role.Title)},
-			{Align: simpletable.AlignLeft, Text: annualUsdSalary},
-			{Align: simpletable.AlignRight, Text: strconv.FormatFloat(assignments[index].TimeShare*100, 'f', -1, 64)},
-			{Align: simpletable.AlignRight, Text: strconv.FormatFloat(assignments[index].DeferredPay*100, 'f', -1, 64)},
-			{Align: simpletable.AlignRight, Text: strconv.FormatFloat(assignments[index].InstantHusdPerc*100, 'f', -1, 64)},
-			{Align: simpletable.AlignRight, Text: husdPerPhase},
-			{Align: simpletable.AlignRight, Text: hyphaPerPhase},
-			{Align: simpletable.AlignRight, Text: hvoicePerPhase},
-			{Align: simpletable.AlignRight, Text: seedsEscrowPerPhase},
-			{Align: simpletable.AlignRight, Text: seedsLiquidPerPhase},
-			{Align: simpletable.AlignRight, Text: assignments[index].StartPeriod.StartTime.Time.Format("2006 Jan 02")},
-			{Align: simpletable.AlignRight, Text: assignments[index].EndPeriod.EndTime.Time.Format("2006 Jan 02")},
-		}
-		table.Body.Cells = append(table.Body.Cells, r)
-	}
-
-	table.Footer = &simpletable.Footer{
-		Cells: []*simpletable.Cell{
-			{},
-			{},
-			{}, {}, {}, {},
-			{Align: simpletable.AlignRight, Text: "Subtotal"},
-			{Align: simpletable.AlignRight, Text: husdTotal.String()},
-			{Align: simpletable.AlignRight, Text: hyphaTotal.String()},
-			{Align: simpletable.AlignRight, Text: hvoiceTotal.String()},
-			{Align: simpletable.AlignRight, Text: seedsEscrowTotal.String()},
-			{Align: simpletable.AlignRight, Text: seedsLiquidTotal.String()},
-			{}, {},
-		},
-	}
-
-	return table
 }

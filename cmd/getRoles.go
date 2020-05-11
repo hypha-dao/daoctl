@@ -7,6 +7,7 @@ import (
 	"github.com/alexeyco/simpletable"
 	"github.com/eoscanada/eos-go"
 	"github.com/hypha-dao/daoctl/models"
+	"github.com/hypha-dao/daoctl/views"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 )
@@ -22,14 +23,14 @@ var getRoleCmd = &cobra.Command{
 
 		periods := models.LoadPeriods(api)
 		roles := models.Roles(ctx, api, periods)
-		rolesTable := models.RoleTable(roles)
+		rolesTable := views.RoleTable(roles)
 		rolesTable.SetStyle(simpletable.StyleCompactLite)
 
 		fmt.Println("\n\n" + rolesTable.String() + "\n\n")
 
 		if viper.GetBool("get-roles-cmd-include-proposals") == true {
 			propRoles := models.ProposedRoles(ctx, api, periods)
-			propRolesTable := models.RoleTable(propRoles)
+			propRolesTable := views.RoleTable(propRoles)
 			propRolesTable.SetStyle(simpletable.StyleCompactLite)
 			fmt.Println("\n\n" + propRolesTable.String() + "\n\n")
 			return

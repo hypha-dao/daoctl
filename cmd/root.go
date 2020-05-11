@@ -41,7 +41,7 @@ func init() {
 	cobra.OnInitialize(initConfig)
 
 	rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is ./daoctl.yaml)")
-	rootCmd.Flags().BoolP("assets-as-floats", "f", false, "Format assets objects as floats (helpful for CSV export)")
+	// rootCmd.Flags().BoolP("assets-as-floats", "f", false, "Format assets objects as floats (helpful for CSV export)")
 	rootCmd.Flags().BoolP("include-proposals", "p", false, "Include proposals when retrieving objects")
 
 }
@@ -60,7 +60,6 @@ func initConfig() {
 		}
 
 		// Search config in home directory with name ".daoctl" (without extension).
-		viper.SetEnvPrefix("DAOCTL")
 		viper.SetConfigType("yaml")
 		viper.AddConfigPath(".")
 		viper.AddConfigPath("./configs")
@@ -68,6 +67,12 @@ func initConfig() {
 		viper.SetConfigName("daoctl")
 	}
 
+	// If a config file is found, read it in.
+	if err := viper.ReadInConfig(); err == nil {
+		fmt.Println("Using config file:", viper.ConfigFileUsed())
+	}
+
+	viper.SetEnvPrefix("daoctl")
 	viper.AutomaticEnv() // read in environment variables that match
 	replacer := strings.NewReplacer("-", "_")
 	viper.SetEnvKeyReplacer(replacer)
@@ -79,11 +84,6 @@ func initConfig() {
 		if err == nil {
 			SetLogger(zlog)
 		}
-	}
-
-	// If a config file is found, read it in.
-	if err := viper.ReadInConfig(); err == nil {
-		fmt.Println("Using config file:", viper.ConfigFileUsed())
 	}
 }
 
