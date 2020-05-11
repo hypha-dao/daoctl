@@ -169,6 +169,5 @@ func AssignmentTable(assignments []Assignment) *simpletable.Table {
 		},
 	}
 
-	table.SetStyle(simpletable.StyleCompactLite)
 	return table
 }

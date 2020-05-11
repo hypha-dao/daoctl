@@ -25,6 +25,22 @@ type Role struct {
 	CreatedDate      eos.BlockTimestamp
 }
 
+func roleHeader() *simpletable.Header {
+	return &simpletable.Header{
+		Cells: []*simpletable.Cell{
+			{Align: simpletable.AlignCenter, Text: "#"},
+			{Align: simpletable.AlignCenter, Text: "Title"},
+			{Align: simpletable.AlignCenter, Text: "Owner"},
+			{Align: simpletable.AlignCenter, Text: "Min Time %"},
+			{Align: simpletable.AlignCenter, Text: "Min Def %"},
+			{Align: simpletable.AlignCenter, Text: "FTE Cap"},
+			{Align: simpletable.AlignCenter, Text: "Annual USD"},
+			{Align: simpletable.AlignCenter, Text: "Start Date"},
+			{Align: simpletable.AlignCenter, Text: "End Date"},
+		},
+	}
+}
+
 // NewRole creates a new Role instance based on the DAOObject
 func NewRole(daoObj DAOObject, periods []Period) Role {
 	var r Role
@@ -70,24 +86,8 @@ func Roles(ctx context.Context, api *eos.API, periods []Period) []Role {
 	return roles
 }
 
-func roleHeader() *simpletable.Header {
-	return &simpletable.Header{
-		Cells: []*simpletable.Cell{
-			{Align: simpletable.AlignCenter, Text: "#"},
-			{Align: simpletable.AlignCenter, Text: "Title"},
-			{Align: simpletable.AlignCenter, Text: "Owner"},
-			{Align: simpletable.AlignCenter, Text: "Min Time %"},
-			{Align: simpletable.AlignCenter, Text: "Min Def %"},
-			{Align: simpletable.AlignCenter, Text: "FTE Cap"},
-			{Align: simpletable.AlignCenter, Text: "Annual USD"},
-			{Align: simpletable.AlignCenter, Text: "Start Date"},
-			{Align: simpletable.AlignCenter, Text: "End Date"},
-		},
-	}
-}
-
 // RoleTable returns a string representing an output table for a Role array
-func RoleTable(roles []Role) string {
+func RoleTable(roles []Role) *simpletable.Table {
 
 	table := simpletable.New()
 	table.Header = roleHeader()
@@ -97,6 +97,14 @@ func RoleTable(roles []Role) string {
 	for index := range roles {
 
 		usdTotal = usdTotal.Add(roles[index].AnnualUSDSalary)
+		var annualUsdSalary string
+		AssetsAsFloats := true
+		if AssetsAsFloats {
+			annualUsdSalary = strconv.FormatFloat(float64(roles[index].AnnualUSDSalary.Amount/100), 'f', 2, 64)
+		} else {
+			annualUsdSalary = roles[index].AnnualUSDSalary.String()
+
+		}
 		r := []*simpletable.Cell{
 			{Align: simpletable.AlignCenter, Text: strconv.Itoa(int(roles[index].ID))},
 			{Align: simpletable.AlignLeft, Text: string(roles[index].Title)},
@@ -104,7 +112,7 @@ func RoleTable(roles []Role) string {
 			{Align: simpletable.AlignRight, Text: strconv.FormatFloat(roles[index].MinTime*100, 'f', -1, 64)},
 			{Align: simpletable.AlignRight, Text: strconv.FormatFloat(roles[index].MinDeferred*100, 'f', -1, 64)},
 			{Align: simpletable.AlignRight, Text: strconv.FormatFloat(roles[index].FullTimeCapacity*100, 'f', -1, 64)},
-			{Align: simpletable.AlignRight, Text: roles[index].AnnualUSDSalary.String()},
+			{Align: simpletable.AlignRight, Text: annualUsdSalary},
 			{Align: simpletable.AlignRight, Text: roles[index].StartPeriod.StartTime.Time.Format("2006 Jan 02")},
 			{Align: simpletable.AlignRight, Text: roles[index].EndPeriod.EndTime.Time.Format("2006 Jan 02")},
 		}
@@ -120,6 +128,5 @@ func RoleTable(roles []Role) string {
 		},
 	}
 
-	table.SetStyle(simpletable.StyleCompactLite)
-	return table.String()
+	return table
 }

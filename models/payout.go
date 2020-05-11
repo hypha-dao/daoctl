@@ -2,7 +2,6 @@ package models
 
 import (
 	"context"
-	"fmt"
 	"strconv"
 
 	"github.com/alexeyco/simpletable"
@@ -45,8 +44,8 @@ func payoutHeader() *simpletable.Header {
 	}
 }
 
-// ToPayout converts a generic DAO Object to a typed Payout
-func toPayout(daoObj DAOObject, periods []Period) Payout {
+// NewPayout converts a generic DAO Object to a typed Payout
+func NewPayout(daoObj DAOObject, periods []Period) Payout {
 	var a Payout
 	a.ID = daoObj.ID
 	a.Receiver = daoObj.Names["recipient"]
@@ -81,7 +80,7 @@ func ProposedPayouts(ctx context.Context, api *eos.API, periods []Period) []Payo
 	for index := range objects {
 		daoObject := ToDAOObject(objects[index])
 		if daoObject.Names["type"] == "payout" {
-			payout := toPayout(daoObject, periods)
+			payout := NewPayout(daoObject, periods)
 			payout.Approved = false
 			propPayouts = append(propPayouts, payout)
 		}
@@ -94,14 +93,15 @@ func Payouts(ctx context.Context, api *eos.API, periods []Period) []Payout {
 	objects := LoadObjects(ctx, api, "payout")
 	var payouts []Payout
 	for index := range objects {
-		payout := toPayout(ToDAOObject(objects[index]), periods)
+		payout := NewPayout(ToDAOObject(objects[index]), periods)
 		payout.Approved = true
 		payouts = append(payouts, payout)
 	}
 	return payouts
 }
 
-func payoutTable(payouts []Payout) string {
+// PayoutTable is a simpleTable.Table object with payouts
+func PayoutTable(payouts []Payout) *simpletable.Table {
 
 	table := simpletable.New()
 	table.Header = payoutHeader()
@@ -120,16 +120,33 @@ func payoutTable(payouts []Payout) string {
 		seedsLiquidTotal = seedsLiquidTotal.Add(payouts[index].SeedsLiquid)
 		seedsEscrowTotal = seedsEscrowTotal.Add(payouts[index].SeedsEscrow)
 
+		AssetAsFloats := true
+		var husd, hypha, hvoice, seedsEscrow, seedsLiquid string
+		if AssetAsFloats {
+			husd = strconv.FormatFloat(float64(payouts[index].Husd.Amount/100), 'f', 2, 64)
+			hypha = strconv.FormatFloat(float64(payouts[index].Hypha.Amount/100), 'f', 2, 64)
+			hvoice = strconv.FormatFloat(float64(payouts[index].Hvoice.Amount/100), 'f', 2, 64)
+			seedsEscrow = strconv.FormatFloat(float64(payouts[index].SeedsEscrow.Amount/10000), 'f', 2, 64)
+			seedsLiquid = strconv.FormatFloat(float64(payouts[index].SeedsLiquid.Amount/10000), 'f', 2, 64)
+		} else {
+			husd = payouts[index].Husd.String()
+			hypha = payouts[index].Hypha.String()
+			hvoice = payouts[index].Hvoice.String()
+			seedsEscrow = payouts[index].SeedsEscrow.String()
+			seedsLiquid = payouts[index].SeedsLiquid.String()
+		}
+
 		r := []*simpletable.Cell{
 			{Align: simpletable.AlignCenter, Text: strconv.Itoa(int(payouts[index].ID))},
 			{Align: simpletable.AlignRight, Text: string(payouts[index].Receiver)},
 			{Align: simpletable.AlignLeft, Text: payouts[index].Title},
 			{Align: simpletable.AlignRight, Text: strconv.FormatFloat(payouts[index].DeferredPay*100, 'f', -1, 64)},
-			{Align: simpletable.AlignRight, Text: payouts[index].Husd.String()},
-			{Align: simpletable.AlignRight, Text: payouts[index].Hypha.String()},
-			{Align: simpletable.AlignRight, Text: payouts[index].Hvoice.String()},
-			{Align: simpletable.AlignRight, Text: payouts[index].SeedsEscrow.String()},
-			{Align: simpletable.AlignRight, Text: payouts[index].SeedsLiquid.String()},
+			{Align: simpletable.AlignRight, Text: husd},
+			{Align: simpletable.AlignRight, Text: hypha},
+			{Align: simpletable.AlignRight, Text: hvoice},
+			{Align: simpletable.AlignRight, Text: seedsEscrow},
+			{Align: simpletable.AlignRight, Text: seedsLiquid},
+
 			{Align: simpletable.AlignRight, Text: payouts[index].CreatedDate.Time.Format("2006 Jan 02")},
 		}
 		table.Body.Cells = append(table.Body.Cells, r)
@@ -150,18 +167,5 @@ func payoutTable(payouts []Payout) string {
 		},
 	}
 
-	table.SetStyle(simpletable.StyleCompactLite)
-	return table.String()
-}
-
-// PrintPayouts prints a table with all active payouts
-func PrintPayouts(ctx context.Context, api *eos.API, periods []Period, includeProposals bool) {
-
-	payouts := Payouts(ctx, api, periods)
-	fmt.Println("\n\n" + payoutTable(payouts) + "\n\n")
-
-	if includeProposals {
-		propPayouts := ProposedPayouts(ctx, api, periods)
-		fmt.Println("\n\n" + payoutTable(propPayouts) + "\n\n")
-	}
+	return table
 }

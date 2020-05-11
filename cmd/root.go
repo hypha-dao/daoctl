@@ -1,25 +1,13 @@
-/*
-Copyright © 2020 Digital Scarcity
-
-Licensed under the Apache License, Version 2.0 (the "License");
-you may not use this file except in compliance with the License.
-You may obtain a copy of the License at
-
-    http://www.apache.org/licenses/LICENSE-2.0
-
-Unless required by applicable law or agreed to in writing, software
-distributed under the License is distributed on an "AS IS" BASIS,
-WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-See the License for the specific language governing permissions and
-limitations under the License.
-*/
 package cmd
 
 import (
 	"fmt"
 	"os"
+	"strings"
 
 	"github.com/spf13/cobra"
+	"github.com/spf13/pflag"
+	"go.uber.org/zap"
 
 	homedir "github.com/mitchellh/go-homedir"
 	"github.com/spf13/viper"
@@ -38,9 +26,6 @@ Example use:
 	daoctl get assignments --include-proposals
 
 Hypha - Dapps for a New World - visit online @ hypha.earth`,
-	// Uncomment the following line if your bare application
-	// has an action associated with it:
-	//	Run: func(cmd *cobra.Command, args []string) { },
 }
 
 // Execute adds all child commands to the root command and sets flags appropriately.
@@ -57,7 +42,7 @@ func init() {
 
 	rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is ./daoctl.yaml)")
 	rootCmd.Flags().BoolP("assets-as-floats", "f", false, "Format assets objects as floats (helpful for CSV export)")
-  rootCmd.Flags().BoolP("include-proposals", "p", false, "Include proposals when retrieving objects")
+	rootCmd.Flags().BoolP("include-proposals", "p", false, "Include proposals when retrieving objects")
 
 }
 
@@ -84,9 +69,41 @@ func initConfig() {
 	}
 
 	viper.AutomaticEnv() // read in environment variables that match
+	replacer := strings.NewReplacer("-", "_")
+	viper.SetEnvKeyReplacer(replacer)
+
+	recurseViperCommands(rootCmd, nil)
+
+	if viper.GetBool("global-debug") {
+		zlog, err := zap.NewDevelopment()
+		if err == nil {
+			SetLogger(zlog)
+		}
+	}
 
 	// If a config file is found, read it in.
 	if err := viper.ReadInConfig(); err == nil {
 		fmt.Println("Using config file:", viper.ConfigFileUsed())
+	}
+}
+
+func recurseViperCommands(root *cobra.Command, segments []string) {
+	// Stolen from: github.com/abourget/viperbind
+	var segmentPrefix string
+	if len(segments) > 0 {
+		segmentPrefix = strings.Join(segments, "-") + "-"
+	}
+
+	root.PersistentFlags().VisitAll(func(f *pflag.Flag) {
+		newVar := segmentPrefix + "global-" + f.Name
+		viper.BindPFlag(newVar, f)
+	})
+	root.Flags().VisitAll(func(f *pflag.Flag) {
+		newVar := segmentPrefix + "cmd-" + f.Name
+		viper.BindPFlag(newVar, f)
+	})
+
+	for _, cmd := range root.Commands() {
+		recurseViperCommands(cmd, append(segments, cmd.Name()))
 	}
 }
