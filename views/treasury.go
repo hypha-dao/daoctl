@@ -28,13 +28,16 @@ func TreasuryTable(treasurys []models.Treasury) *simpletable.Table {
 
 		fmt.Println("Balance	: ", treasurys[index].Balance.String())
 		fmt.Println("Balance Total	: ", balanceTotal.String())
-		balanceTotal = balanceTotal.Add(treasurys[index].Balance)
+		if treasurys[index].Balance.Amount > 0 {
 
-		r := []*simpletable.Cell{
-			{Align: simpletable.AlignRight, Text: string(treasurys[index].TokenHolder)},
-			{Align: simpletable.AlignRight, Text: FormatAsset(&treasurys[index].Balance)},
-		}
-		table.Body.Cells = append(table.Body.Cells, r)
+      balanceTotal = balanceTotal.Add(treasurys[index].Balance)
+
+      r := []*simpletable.Cell{
+        {Align: simpletable.AlignRight, Text: string(treasurys[index].TokenHolder)},
+        {Align: simpletable.AlignRight, Text: FormatAsset(&treasurys[index].Balance)},
+      }
+      table.Body.Cells = append(table.Body.Cells, r)
+    }
 	}
 
 	table.Footer = &simpletable.Footer{

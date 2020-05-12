@@ -52,10 +52,11 @@ func GetTokenHoldings(api *eos.API, tokenContract, symbol string) []Treasury {
 		tokenHolder := eos.AccountName(scope.Scope)
 		balances, err := api.GetCurrencyBalance(context.Background(), tokenHolder, symbol, eos.AN(tokenContract))
 		errorCheck("treasury", err)
-		treasuries = append(treasuries, []Treasury(scope.Scope, balances[0]))
-		treasuries[index].TokenHolder = scope.Scope
-		treasuries[index].Balance = balances[0]
-		fmt.Println("Token holder: ", scope.Scope, " -- Balance: ", balances[0])
+		if len(balances) > 0 {
+      treasuries[index].TokenHolder = scope.Scope
+      treasuries[index].Balance = balances[0]
+      fmt.Println("Token holder: ", scope.Scope, " -- Balance: ", balances[0])
+    }
 		// holdingsMap[&tokenHolder] = &balances[0]
 	}
 	return treasuries
