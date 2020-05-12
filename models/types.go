@@ -48,6 +48,14 @@ type FloatKV struct {
 	Value eos.Float128 `json:"value"`
 }
 
+type Scope struct {
+	Code  eos.Name `json:"code"`
+	Scope eos.Name `json:"scope"`
+	Table eos.Name `json:"table"`
+	Payer eos.Name `json:"payer"`
+	Count uint64   `json:"count"`
+}
+
 // Object struct
 type Object struct {
 	ID           uint64             `json:"id"`

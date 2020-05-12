@@ -1,2 +1,6 @@
 EosioEndpoint: https://api.telos.kitchen
 AssetsAsFloat: true
+DAOContract: dao.hypha
+TreasuryTokenContract: token.hypha
+TreasurySymbol: HUSD
+TreasuryContract: bank.hypha

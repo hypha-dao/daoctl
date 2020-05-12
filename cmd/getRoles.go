@@ -5,7 +5,7 @@ import (
 	"fmt"
 
 	"github.com/alexeyco/simpletable"
-	"github.com/eoscanada/eos-go"
+	eos "github.com/eoscanada/eos-go"
 	"github.com/hypha-dao/daoctl/models"
 	"github.com/hypha-dao/daoctl/views"
 	"github.com/spf13/cobra"
