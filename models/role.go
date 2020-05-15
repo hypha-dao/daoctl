@@ -11,6 +11,7 @@ type Role struct {
 	ID               uint64
 	Approved         bool
 	Owner            eos.Name
+	BallotName       eos.Name
 	Title            string
 	Description      string
 	URL              string
@@ -29,6 +30,7 @@ func NewRole(daoObj DAOObject, periods []Period) Role {
 	r.ID = daoObj.ID
 	r.Title = daoObj.Strings["title"]
 	r.Owner = daoObj.Names["owner"]
+	r.BallotName = daoObj.Names["ballot_id"]
 	r.Description = daoObj.Strings["description"]
 	r.URL = daoObj.Strings["url"]
 	r.AnnualUSDSalary = daoObj.Assets["annual_usd_salary"]

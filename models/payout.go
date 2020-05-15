@@ -11,6 +11,7 @@ type Payout struct {
 	ID              uint64
 	Approved        bool
 	Receiver        eos.Name
+	BallotName      eos.Name
 	Title           string
 	Description     string
 	Husd            eos.Asset
@@ -31,6 +32,7 @@ func NewPayout(daoObj DAOObject, periods []Period) Payout {
 	a.ID = daoObj.ID
 	a.Receiver = daoObj.Names["recipient"]
 	a.Title = daoObj.Strings["title"]
+	a.BallotName = daoObj.Names["ballot_id"]
 	a.Husd = daoObj.Assets["husd_amount"]
 
 	if daoObj.Assets["husd_amount"].Amount == 0 {

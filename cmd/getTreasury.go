@@ -14,7 +14,7 @@ import (
 
 var getTreasuryCmd = &cobra.Command{
 	Use:   "treasury",
-	Short: "Retrieve multi-chain balance information for the treasury",
+	Short: "retrieve multi-chain balance information for the treasury",
 	// Args:  cobra.ExactArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
 		api := eos.New(viper.GetString("EosioEndpoint"))
@@ -50,7 +50,5 @@ var getTreasuryCmd = &cobra.Command{
 
 func init() {
 	getCmd.AddCommand(getTreasuryCmd)
-
 	getTreasuryCmd.Flags().StringP("addl-balance", "", "0.00 HUSD", "Value of other accounts (e.g. banking, BTC) to optionally add manually")
-	// getTreasuryCmd.Flags().StringP("symbol", "", "", "Treasury symbol. Try HUSD")
 }

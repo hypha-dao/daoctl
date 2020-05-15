@@ -12,12 +12,12 @@ import (
 // BallotHeader ...
 func BallotHeader(ballot models.Ballot) string {
 	output := []string{
-		fmt.Sprintf("Ballot Name|%v", string(ballot.BallotName)),
-		fmt.Sprintf("Title|%v", string(ballot.Title)),
-		fmt.Sprintf("Status|%v", string(ballot.Status)),
-		fmt.Sprintf("Begin Time|%v", ballot.EndTime.Time.Format("2006 Jan 02 15:04:05")),
-		fmt.Sprintf("End Time|%v", ballot.EndTime.Time.Format("2006 Jan 02 15:04:05")),
-		fmt.Sprintf("Description|%v", ballot.Description),
+		fmt.Sprintf("Ballot ID||%v", string(ballot.BallotName)),
+		fmt.Sprintf("Title||%v", string(ballot.Title)),
+		fmt.Sprintf("Status||%v", string(ballot.Status)),
+		fmt.Sprintf("Begin Time||%v", ballot.BeginTime.Time.Format("2006 Jan 02 15:04:05")),
+		fmt.Sprintf("End Time||%v", ballot.EndTime.Time.Format("2006 Jan 02 15:04:05")),
+		fmt.Sprintf("Description||%v", ballot.Description),
 	}
 	return columnize.SimpleFormat(output)
 }
@@ -34,13 +34,14 @@ func votesHeader() *simpletable.Header {
 }
 
 // VotesTable ...
-func VotesTable(votes []models.Vote) *simpletable.Table {
+func VotesTable(votes []models.Vote) (*simpletable.Table, eos.Asset) {
 
 	table := simpletable.New()
 	table.Header = votesHeader()
 
 	votesAgainstTotal, _ := eos.NewAssetFromString("0.00 HVOICE")
 	votesForTotal, _ := eos.NewAssetFromString("0.00 HVOICE")
+	totalVotes, _ := eos.NewAssetFromString("0.00 HVOICE")
 
 	for _, vote := range votes {
 
@@ -53,6 +54,7 @@ func VotesTable(votes []models.Vote) *simpletable.Table {
 			votesAgainst = vote.VotingPower
 			votesAgainstTotal = votesAgainstTotal.Add(vote.VotingPower)
 		}
+		totalVotes = totalVotes.Add(vote.VotingPower)
 
 		r := []*simpletable.Cell{
 			{Align: simpletable.AlignLeft, Text: string(vote.Voter)},
@@ -72,5 +74,5 @@ func VotesTable(votes []models.Vote) *simpletable.Table {
 		},
 	}
 
-	return table
+	return table, totalVotes
 }

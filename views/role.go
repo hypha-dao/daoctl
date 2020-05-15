@@ -22,6 +22,7 @@ func roleHeader() *simpletable.Header {
 			{Align: simpletable.AlignCenter, Text: "Extended"},
 			{Align: simpletable.AlignCenter, Text: "Start Date"},
 			{Align: simpletable.AlignCenter, Text: "End Date"},
+			{Align: simpletable.AlignCenter, Text: "Ballot"},
 		},
 	}
 }
@@ -60,6 +61,7 @@ func RoleTable(roles []models.Role) *simpletable.Table {
 			{Align: simpletable.AlignRight, Text: FormatAsset(&usdFte)},
 			{Align: simpletable.AlignRight, Text: roles[index].StartPeriod.StartTime.Time.Format("2006 Jan 02")},
 			{Align: simpletable.AlignRight, Text: roles[index].EndPeriod.EndTime.Time.Format("2006 Jan 02")},
+			{Align: simpletable.AlignRight, Text: string(roles[index].BallotName)[11:]},
 		}
 		table.Body.Cells = append(table.Body.Cells, r)
 	}
@@ -69,7 +71,7 @@ func RoleTable(roles []models.Role) *simpletable.Table {
 			{}, {}, {}, {}, {}, {},
 			{Align: simpletable.AlignRight, Text: "Subtotal"},
 			{Align: simpletable.AlignRight, Text: FormatAsset(&usdFteTotal)},
-			{}, {},
+			{}, {}, {},
 		},
 	}
 

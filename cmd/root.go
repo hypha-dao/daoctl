@@ -24,6 +24,7 @@ Query and manage roles, assignments, periods, payouts, and proposals.
 
 Example use:
 	daoctl get assignments --include-proposals
+	daoctl get treasury
 
 Hypha - Dapps for a New World - visit online @ hypha.earth`,
 }

@@ -65,7 +65,7 @@ func AssignmentTable(assignments []models.Assignment) *simpletable.Table {
 			{Align: simpletable.AlignRight, Text: FormatAsset(&assignments[index].SeedsLiquidPerPhase)},
 			{Align: simpletable.AlignRight, Text: assignments[index].StartPeriod.StartTime.Time.Format("2006 Jan 02")},
 			{Align: simpletable.AlignRight, Text: assignments[index].EndPeriod.EndTime.Time.Format("2006 Jan 02")},
-			{Align: simpletable.AlignRight, Text: string(assignments[index].BallotName)},
+			{Align: simpletable.AlignRight, Text: string(assignments[index].BallotName)[11:]},
 		}
 		table.Body.Cells = append(table.Body.Cells, r)
 	}

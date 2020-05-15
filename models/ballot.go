@@ -74,3 +74,28 @@ func NewBallot(ctx context.Context, api *eos.API, ballotName eos.Name) (*Ballot,
 	ballot[0].Votes = votes
 	return &ballot[0], nil
 }
+
+// GetHvoiceSupply ...
+func GetHvoiceSupply(ctx context.Context, api *eos.API) (*eos.Asset, error) {
+	type Supply struct {
+		HvoiceSupply eos.Asset `json:"supply"`
+	}
+
+	var supply []Supply
+	// telosDecide := eos.MustStringToName(viper.GetString("TelosDecideContract"))
+
+	var request eos.GetTableRowsRequest
+	request.Code = viper.GetString("TelosDecideContract")
+	request.Scope = viper.GetString("TelosDecideContract")
+	request.Table = "treasuries"
+	request.Limit = 1
+	request.LowerBound = string("HVOICE")
+	request.UpperBound = string("HVOICE")
+	request.JSON = true
+	response, err := api.GetTableRows(ctx, request)
+	if err != nil {
+		return nil, err
+	}
+	response.JSONToStructs(&supply)
+	return &supply[0].HvoiceSupply, nil
+}

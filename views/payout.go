@@ -21,6 +21,7 @@ func payoutHeader() *simpletable.Header {
 			{Align: simpletable.AlignCenter, Text: "Escrow SEEDS"},
 			{Align: simpletable.AlignCenter, Text: "Liquid SEEDS"},
 			{Align: simpletable.AlignCenter, Text: "Created Date"},
+			{Align: simpletable.AlignCenter, Text: "Ballot"},
 		},
 	}
 }
@@ -55,8 +56,8 @@ func PayoutTable(payouts []models.Payout) *simpletable.Table {
 			{Align: simpletable.AlignRight, Text: FormatAsset(&payouts[index].Hvoice)},
 			{Align: simpletable.AlignRight, Text: FormatAsset(&payouts[index].SeedsEscrow)},
 			{Align: simpletable.AlignRight, Text: FormatAsset(&payouts[index].SeedsLiquid)},
-
 			{Align: simpletable.AlignRight, Text: payouts[index].CreatedDate.Time.Format("2006 Jan 02")},
+			{Align: simpletable.AlignRight, Text: string(payouts[index].BallotName)[11:]},
 		}
 		table.Body.Cells = append(table.Body.Cells, r)
 	}
@@ -72,7 +73,7 @@ func PayoutTable(payouts []models.Payout) *simpletable.Table {
 			{Align: simpletable.AlignRight, Text: FormatAsset(&hvoiceTotal)},
 			{Align: simpletable.AlignRight, Text: FormatAsset(&seedsEscrowTotal)},
 			{Align: simpletable.AlignRight, Text: FormatAsset(&seedsLiquidTotal)},
-			{},
+			{}, {},
 		},
 	}
 
