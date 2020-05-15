@@ -1,6 +1,7 @@
 package cmd
 
 import (
+	"bytes"
 	"fmt"
 	"os"
 	"strings"
@@ -14,6 +15,20 @@ import (
 )
 
 var cfgFile string
+
+var yamlDefault = []byte(`
+EosioEndpoint: https://api.telos.kitchen
+AssetsAsFloat: true
+DAOContract: dao.hypha
+Treasury:
+  TokenContract: token.hypha
+  Symbol: HUSD
+  Contract: bank.hypha
+  EthUSDTContract: 0xdac17f958d2ee523a2206206994597c13d831ec7
+  EthUSDTAddress: 0xC20f453a4B4995CA032570f212988F4978B35dDd
+  BtcAddress: 35hfgfaUouzYixTUDV6CFqMiTSZcuNtTf9
+TelosDecideContract: trailservice
+`)
 
 // rootCmd represents the base command when called without any subcommands
 var rootCmd = &cobra.Command{
@@ -71,6 +86,8 @@ func initConfig() {
 	// If a config file is found, read it in.
 	if err := viper.ReadInConfig(); err == nil {
 		fmt.Println("Using config file:", viper.ConfigFileUsed())
+	} else {
+		viper.ReadConfig(bytes.NewBuffer(yamlDefault))
 	}
 
 	viper.SetEnvPrefix("daoctl")
