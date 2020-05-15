@@ -1,7 +1,6 @@
 package views
 
 import (
-  "fmt"
 	"github.com/alexeyco/simpletable"
 	"github.com/eoscanada/eos-go"
 	"github.com/hypha-dao/daoctl/models"
@@ -17,7 +16,7 @@ func treasuryHeader() *simpletable.Header {
 }
 
 // TreasuryTable returns a string representing an output table for a Treasury array
-func TreasuryTable(treasurys []models.Treasury) *simpletable.Table {
+func TreasuryTable(treasurys []models.TreasuryHolder) (*simpletable.Table, eos.Asset) {
 
 	table := simpletable.New()
 	table.Header = treasuryHeader()
@@ -26,18 +25,16 @@ func TreasuryTable(treasurys []models.Treasury) *simpletable.Table {
 
 	for index := range treasurys {
 
-		fmt.Println("Balance	: ", treasurys[index].Balance.String())
-		fmt.Println("Balance Total	: ", balanceTotal.String())
 		if treasurys[index].Balance.Amount > 0 {
 
-      balanceTotal = balanceTotal.Add(treasurys[index].Balance)
+			balanceTotal = balanceTotal.Add(treasurys[index].Balance)
 
-      r := []*simpletable.Cell{
-        {Align: simpletable.AlignRight, Text: string(treasurys[index].TokenHolder)},
-        {Align: simpletable.AlignRight, Text: FormatAsset(&treasurys[index].Balance)},
-      }
-      table.Body.Cells = append(table.Body.Cells, r)
-    }
+			r := []*simpletable.Cell{
+				{Align: simpletable.AlignRight, Text: string(treasurys[index].TokenHolder)},
+				{Align: simpletable.AlignRight, Text: FormatAsset(&treasurys[index].Balance)},
+			}
+			table.Body.Cells = append(table.Body.Cells, r)
+		}
 	}
 
 	table.Footer = &simpletable.Footer{
@@ -47,5 +44,5 @@ func TreasuryTable(treasurys []models.Treasury) *simpletable.Table {
 		},
 	}
 
-	return table
+	return table, balanceTotal
 }

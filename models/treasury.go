@@ -4,15 +4,27 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"io/ioutil"
+	"net/http"
 	"os"
 
 	eos "github.com/eoscanada/eos-go"
 	"github.com/eoscanada/eosc/cli"
+	"github.com/spf13/viper"
 )
 
-type Treasury struct {
+// TreasuryHolder ...
+type TreasuryHolder struct {
 	TokenHolder eos.Name
 	Balance     eos.Asset
+}
+
+// Treasury ...
+type Treasury struct {
+	TreasuryHolders []TreasuryHolder
+	BankBalance     eos.Asset
+	EthUSDTBalance  eos.Asset
+	BtcBalance      eos.Asset
 }
 
 func errorCheck(prefix string, err error) {
@@ -29,9 +41,16 @@ func toAccount(in, field string) eos.AccountName {
 	return acct
 }
 
-func GetTokenHoldings(api *eos.API, tokenContract, symbol string) []Treasury {
+// LoadTreasury ...
+func LoadTreasury(api *eos.API, tokenContract, symbol string) Treasury {
+	var treasury Treasury
+	treasury.loadHolders(api, tokenContract, symbol)
+	treasury.loadEthUSDT(viper.GetString("Treasury.EthUSDTContract"), viper.GetString("Treasury.EthUSDTAddress"))
+	treasury.loadBtcBalance("")
+	return treasury
+}
 
-	// func GetTokenHoldings(api *eos.API, tokenContract, symbol string) map[*eos.AccountName]*eos.Asset {
+func (t *Treasury) loadHolders(api *eos.API, tokenContract, symbol string) {
 	var request eos.GetTableByScopeRequest
 	request.Code = tokenContract
 	request.Table = "accounts"
@@ -42,24 +61,48 @@ func GetTokenHoldings(api *eos.API, tokenContract, symbol string) []Treasury {
 	var scopes []Scope
 	json.Unmarshal(response.Rows, &scopes)
 
-	var treasuries []Treasury
-	treasuries = make([]Treasury, len(scopes))
+	var treasuryHolder []TreasuryHolder
+	treasuryHolder = make([]TreasuryHolder, len(scopes))
 
-	// var holdingsMap map[*eos.AccountName]*eos.Asset
-	// holdingsMap = make(map[*eos.AccountName]*eos.Asset, len(scopes))
 	for index, scope := range scopes {
 
 		tokenHolder := eos.AccountName(scope.Scope)
 		balances, err := api.GetCurrencyBalance(context.Background(), tokenHolder, symbol, eos.AN(tokenContract))
 		errorCheck("treasury", err)
 		if len(balances) > 0 {
-      treasuries[index].TokenHolder = scope.Scope
-      treasuries[index].Balance = balances[0]
-      fmt.Println("Token holder: ", scope.Scope, " -- Balance: ", balances[0])
-    }
-		// holdingsMap[&tokenHolder] = &balances[0]
+			if string(scope.Scope) == viper.GetString("Treasury.Contract") {
+				t.BankBalance = balances[0]
+			} else {
+				treasuryHolder[index].TokenHolder = scope.Scope
+				treasuryHolder[index].Balance = balances[0]
+			}
+		}
 	}
-	return treasuries
+	t.TreasuryHolders = treasuryHolder
+}
+
+func (t *Treasury) loadEthUSDT(usdtTokenAddress, treasuryWallet string) {
+	requestString := "https://api.tokenbalance.com/balance/" + viper.GetString("Treasury.EthUSDTContract") + "/" + viper.GetString("Treasury.EthUSDTAddress")
+	resp, err := http.Get(requestString)
+	if err != nil {
+		fmt.Println("Unable to retrieve ETH USDT balance.")
+		return
+	}
+	defer resp.Body.Close()
+	body, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		fmt.Println("Unable to retrieve ETH USDT balance.")
+		return
+	}
+	// fmt.Println("USDT balance: ", string(body))
+	t.EthUSDTBalance, err = eos.NewAssetFromString(string(body) + " HUSD")
+	if err != nil {
+		fmt.Println("Unable to format ETH USDT balance as an asset type: " + string(body) + " HUSD")
+	}
+}
+
+func (t *Treasury) loadBtcBalance(btcAddress string) {
+	fmt.Println("Note: Bitcoin Treasury balance not yet supported.")
 }
 
 // func GetHusdBankBalance(api *eos.API) {

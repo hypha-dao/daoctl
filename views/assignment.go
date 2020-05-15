@@ -25,6 +25,7 @@ func assignmentHeader() *simpletable.Header {
 			{Align: simpletable.AlignCenter, Text: "Liquid SEEDS"},
 			{Align: simpletable.AlignCenter, Text: "Start Date"},
 			{Align: simpletable.AlignCenter, Text: "End Date"},
+			{Align: simpletable.AlignCenter, Text: "Ballot"},
 		},
 	}
 }
@@ -64,6 +65,7 @@ func AssignmentTable(assignments []models.Assignment) *simpletable.Table {
 			{Align: simpletable.AlignRight, Text: FormatAsset(&assignments[index].SeedsLiquidPerPhase)},
 			{Align: simpletable.AlignRight, Text: assignments[index].StartPeriod.StartTime.Time.Format("2006 Jan 02")},
 			{Align: simpletable.AlignRight, Text: assignments[index].EndPeriod.EndTime.Time.Format("2006 Jan 02")},
+			{Align: simpletable.AlignRight, Text: string(assignments[index].BallotName)},
 		}
 		table.Body.Cells = append(table.Body.Cells, r)
 	}
@@ -79,7 +81,7 @@ func AssignmentTable(assignments []models.Assignment) *simpletable.Table {
 			{Align: simpletable.AlignRight, Text: FormatAsset(&hvoiceTotal)},
 			{Align: simpletable.AlignRight, Text: FormatAsset(&seedsEscrowTotal)},
 			{Align: simpletable.AlignRight, Text: FormatAsset(&seedsLiquidTotal)},
-			{}, {},
+			{}, {}, {},
 		},
 	}
 

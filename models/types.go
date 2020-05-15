@@ -48,6 +48,7 @@ type FloatKV struct {
 	Value eos.Float128 `json:"value"`
 }
 
+// Scope ...
 type Scope struct {
 	Code  eos.Name `json:"code"`
 	Scope eos.Name `json:"scope"`

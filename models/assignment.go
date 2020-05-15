@@ -12,6 +12,7 @@ type Assignment struct {
 	Approved            bool
 	Owner               eos.Name
 	Assigned            eos.Name
+	BallotName          eos.Name
 	HusdPerPhase        eos.Asset
 	HyphaPerPhase       eos.Asset
 	HvoicePerPhase      eos.Asset
@@ -26,12 +27,20 @@ type Assignment struct {
 	CreatedDate         eos.BlockTimestamp
 }
 
+func scopeApprovals(scope string) bool {
+	if scope == "assignment" {
+		return true
+	}
+	return false
+}
+
 // NewAssignment converts a generic DAO Object to a typed Assignment
 func NewAssignment(daoObj DAOObject, roles []Role, periods []Period) Assignment {
 	var a Assignment
 	a.ID = daoObj.ID
 	a.Owner = daoObj.Names["owner"]
 	a.Assigned = daoObj.Names["assigned_account"]
+	a.BallotName = daoObj.Names["ballot_id"]
 	a.HusdPerPhase = daoObj.Assets["husd_salary_per_phase"]
 	a.HyphaPerPhase = daoObj.Assets["hypha_salary_per_phase"]
 	a.HvoicePerPhase = daoObj.Assets["hvoice_salary_per_phase"]
@@ -47,29 +56,17 @@ func NewAssignment(daoObj DAOObject, roles []Role, periods []Period) Assignment 
 	return a
 }
 
-// ProposedAssignments provides the active assignment proposals
-func ProposedAssignments(ctx context.Context, api *eos.API, roles []Role, periods []Period) []Assignment {
-	objects := LoadObjects(ctx, api, "proposal")
-	var propAssignments []Assignment
+// Assignments provides the set of active approved assignments
+func Assignments(ctx context.Context, api *eos.API, roles []Role, periods []Period, scope string) []Assignment {
+	objects := LoadObjects(ctx, api, scope)
+	var assignments []Assignment
 	for index := range objects {
 		daoObject := ToDAOObject(objects[index])
 		if daoObject.Names["type"] == "assignment" {
 			assignment := NewAssignment(daoObject, roles, periods)
-			assignment.Approved = false
-			propAssignments = append(propAssignments, assignment)
+			assignment.Approved = scopeApprovals(scope)
+			assignments = append(assignments, assignment)
 		}
-	}
-	return propAssignments
-}
-
-// Assignments provides the set of active approved assignments
-func Assignments(ctx context.Context, api *eos.API, roles []Role, periods []Period) []Assignment {
-	objects := LoadObjects(ctx, api, "assignment")
-	var assignments []Assignment
-	for index := range objects {
-		assignment := NewAssignment(ToDAOObject(objects[index]), roles, periods)
-		assignment.Approved = true
-		assignments = append(assignments, assignment)
 	}
 	return assignments
 }

@@ -1,6 +1,11 @@
 EosioEndpoint: https://api.telos.kitchen
 AssetsAsFloat: true
 DAOContract: dao.hypha
-TreasuryTokenContract: token.hypha
-TreasurySymbol: HUSD
-TreasuryContract: bank.hypha
+Treasury:
+  TokenContract: token.hypha
+  Symbol: HUSD
+  Contract: bank.hypha
+  EthUSDTContract: 0xdac17f958d2ee523a2206206994597c13d831ec7
+  EthUSDTAddress: 0xC20f453a4B4995CA032570f212988F4978B35dDd
+  BtcAddress: 35hfgfaUouzYixTUDV6CFqMiTSZcuNtTf9
+TelosDecideContract: trailservice
