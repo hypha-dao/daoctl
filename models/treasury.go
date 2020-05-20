@@ -19,8 +19,28 @@ type TreasuryHolder struct {
 	Balance     eos.Asset
 }
 
+// TreasuryConfig struct
+type TreasuryConfig struct {
+	RedemptionSymbol        *string
+	DAOContract             *eos.Name
+	RedemptionTokenContract *eos.Name
+	Paused                  *uint64
+	Threshold               *uint64
+	RawTreasuryConfig
+}
+
+type RawTreasuryConfig struct {
+	RedemptionSymbol string             `json:"redemption_symbol"`
+	Names            []NameKV           `json:"names"`
+	Strings          []StringKV         `json:"strings"`
+	Assets           []AssetKV          `json:"assets"`
+	Ints             []IntKV            `json:"ints"`
+	UpdatedDate      eos.BlockTimestamp `json:"updated_date"`
+}
+
 // Treasury ...
 type Treasury struct {
+	Config          TreasuryConfig
 	TreasuryHolders []TreasuryHolder
 	BankBalance     eos.Asset
 	EthUSDTBalance  eos.Asset
@@ -44,10 +64,45 @@ func toAccount(in, field string) eos.AccountName {
 // LoadTreasury ...
 func LoadTreasury(api *eos.API, tokenContract, symbol string) Treasury {
 	var treasury Treasury
+	treasury.loadConfig(api)
 	treasury.loadHolders(api, tokenContract, symbol)
 	treasury.loadEthUSDT(viper.GetString("Treasury.EthUSDTContract"), viper.GetString("Treasury.EthUSDTAddress"))
 	treasury.loadBtcBalance("")
 	return treasury
+}
+
+func (t *Treasury) loadConfig(api *eos.API) {
+
+	// LoadTreasConfig loads the treasury configuration from the smart contract
+	var rto []RawTreasuryConfig
+	var request eos.GetTableRowsRequest
+	request.Code = viper.GetString("Treasury.Contract")
+	request.Scope = viper.GetString("Treasury.Contract")
+	request.Table = "config"
+	request.Limit = 1
+	request.JSON = true
+	response, _ := api.GetTableRows(context.Background(), request)
+	response.JSONToStructs(&rto)
+
+	// bookmark known values
+	for index := range rto[0].Names {
+		if rto[0].Names[index].Key == "dao_contract" {
+			t.Config.DAOContract = &rto[0].Names[index].Value
+		} else if rto[0].Names[index].Key == "token_redemption_contract" {
+			t.Config.RedemptionTokenContract = &rto[0].Names[index].Value
+		}
+	}
+
+	for index := range rto[0].Ints {
+		if rto[0].Ints[index].Key == "paused" {
+			t.Config.Paused = &rto[0].Ints[index].Value
+		} else if rto[0].Ints[index].Key == "threshold" {
+			t.Config.Threshold = &rto[0].Ints[index].Value
+		}
+	}
+
+	t.Config.RawTreasuryConfig = rto[0] // keep the raw object around
+	t.Config.RedemptionSymbol = &rto[0].RedemptionSymbol
 }
 
 func (t *Treasury) loadHolders(api *eos.API, tokenContract, symbol string) {
@@ -102,7 +157,7 @@ func (t *Treasury) loadEthUSDT(usdtTokenAddress, treasuryWallet string) {
 }
 
 func (t *Treasury) loadBtcBalance(btcAddress string) {
-	fmt.Println("Note: Bitcoin Treasury balance not yet supported.")
+	fmt.Println("Note: Bitcoin Treasury balance not yet supported. Use the --addl-balance parameter to add the BTC balance.")
 }
 
 // func GetHusdBankBalance(api *eos.API) {

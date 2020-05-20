@@ -1,4 +1,4 @@
-EosioEndpoint: https://api.telos.kitchen
+EosioEndpoint: https://test.telos.kitchen
 AssetsAsFloat: true
 DAOContract: dao.hypha
 Treasury:
