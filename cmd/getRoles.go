@@ -12,7 +12,7 @@ import (
 	"github.com/spf13/viper"
 )
 
-var getRoleCmd = &cobra.Command{
+var getRolesCmd = &cobra.Command{
 	Use:   "roles [account name]",
 	Short: "retrieve roles",
 	Long:  "retrieve all active roles For a json dump, append the argument --json.",

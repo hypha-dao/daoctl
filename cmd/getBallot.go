@@ -3,7 +3,8 @@ package cmd
 import (
 	"context"
 	"fmt"
-	"math"
+  "github.com/hypha-dao/daoctl/util"
+  "math"
 	"math/big"
 
 	eos "github.com/eoscanada/eos-go"
@@ -54,7 +55,7 @@ var getBallotCmd = &cobra.Command{
 
 		fmt.Println()
 		output := []string{
-			fmt.Sprintf("HVOICE Supply|%v", views.FormatAsset(hvoice)),
+			fmt.Sprintf("HVOICE Supply|%v", util.FormatAsset(hvoice)),
 			fmt.Sprintf("Quorum|%v", ac.FormatMoneyBigFloat(quorum)),
 			fmt.Sprintf("Votes|%v", ac.FormatMoneyBigFloat(votes)),
 			fmt.Sprintf("Quorum Met|%v", quorumMet),

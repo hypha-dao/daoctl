@@ -3,6 +3,7 @@ package cmd
 import (
 	"context"
 	"fmt"
+	"github.com/hypha-dao/daoctl/util"
 	"strconv"
 
 	eos "github.com/eoscanada/eos-go"
@@ -53,12 +54,12 @@ var getTreasuryCmd = &cobra.Command{
 		coverage := float64(usd / circulating * 100)
 		netTreasury := totalAssets.Sub(circulatingBalance)
 		output := []string{
-			fmt.Sprintf("Awaiting burning|%v", views.FormatAsset(&treasury.BankBalance)),
-			fmt.Sprintf("Circulating|%v", views.FormatAsset(&circulatingBalance)),
-			fmt.Sprintf("Eth USDT balance|%v", views.FormatAsset(&treasury.EthUSDTBalance)),
-			fmt.Sprintf("Additional balances|%v", views.FormatAsset(&addlBalance)),
-			fmt.Sprintf("Total balances|%v", views.FormatAsset(&totalAssets)),
-			fmt.Sprintf("Net Treasury balance|%v", views.FormatAsset(&netTreasury)),
+			fmt.Sprintf("Awaiting burning|%v", util.FormatAsset(&treasury.BankBalance)),
+			fmt.Sprintf("Circulating|%v", util.FormatAsset(&circulatingBalance)),
+			fmt.Sprintf("Eth USDT balance|%v", util.FormatAsset(&treasury.EthUSDTBalance)),
+			fmt.Sprintf("Additional balances|%v", util.FormatAsset(&addlBalance)),
+			fmt.Sprintf("Total balances|%v", util.FormatAsset(&totalAssets)),
+			fmt.Sprintf("Net Treasury balance|%v", util.FormatAsset(&netTreasury)),
 			string(fmt.Sprintf("Coverage|%v", strconv.FormatFloat(coverage, 'f', 3, 64)) + " %"),
 		}
 

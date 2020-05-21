@@ -1,6 +1,7 @@
 package views
 
 import (
+	"github.com/hypha-dao/daoctl/util"
 	"math/big"
 	"strconv"
 
@@ -23,19 +24,12 @@ func roleHeader() *simpletable.Header {
 			{Align: simpletable.AlignCenter, Text: "Start Date"},
 			{Align: simpletable.AlignCenter, Text: "End Date"},
 			{Align: simpletable.AlignCenter, Text: "Ballot"},
+			{Align: simpletable.AlignCenter, Text: "PID"},
 		},
 	}
 }
 
-func assetMult(a eos.Asset, coeff *big.Float) eos.Asset {
-	//var amount big.Int
-	var f big.Float
-	f.SetInt(big.NewInt(int64(a.Amount)))
-	amount, _ := f.Mul(&f, coeff).Int64() // big.NewInt(int64(a.Amount)).Mul(coeff)
-	newAmount := eos.Int64(amount)
-	// intObject := big.NewInt(amount)
-	return eos.Asset{Amount: newAmount, Symbol: a.Symbol}
-}
+
 
 // RoleTable returns a string representing an output table for a Role array
 func RoleTable(roles []models.Role) *simpletable.Table {
@@ -47,7 +41,7 @@ func RoleTable(roles []models.Role) *simpletable.Table {
 
 	for index := range roles {
 
-		usdFte := assetMult(roles[index].AnnualUSDSalary, big.NewFloat(roles[index].FullTimeCapacity))
+		usdFte := util.AssetMult(roles[index].AnnualUSDSalary, big.NewFloat(roles[index].FullTimeCapacity))
 		usdFteTotal = usdFteTotal.Add(usdFte)
 
 		r := []*simpletable.Cell{
@@ -57,12 +51,14 @@ func RoleTable(roles []models.Role) *simpletable.Table {
 			{Align: simpletable.AlignRight, Text: strconv.FormatFloat(roles[index].MinTime*100, 'f', -1, 64)},
 			{Align: simpletable.AlignRight, Text: strconv.FormatFloat(roles[index].MinDeferred*100, 'f', -1, 64)},
 			{Align: simpletable.AlignRight, Text: strconv.FormatFloat(roles[index].FullTimeCapacity, 'f', 1, 64)},
-			{Align: simpletable.AlignRight, Text: FormatAsset(&roles[index].AnnualUSDSalary)},
-			{Align: simpletable.AlignRight, Text: FormatAsset(&usdFte)},
+			{Align: simpletable.AlignRight, Text: util.FormatAsset(&roles[index].AnnualUSDSalary)},
+			{Align: simpletable.AlignRight, Text: util.FormatAsset(&usdFte)},
 			{Align: simpletable.AlignRight, Text: roles[index].StartPeriod.StartTime.Time.Format("2006 Jan 02")},
 			{Align: simpletable.AlignRight, Text: roles[index].EndPeriod.EndTime.Time.Format("2006 Jan 02")},
 			{Align: simpletable.AlignRight, Text: string(roles[index].BallotName)[11:]},
+			{Align: simpletable.AlignRight, Text: strconv.Itoa(int(roles[index].PriorID))},
 		}
+
 		table.Body.Cells = append(table.Body.Cells, r)
 	}
 
@@ -70,8 +66,8 @@ func RoleTable(roles []models.Role) *simpletable.Table {
 		Cells: []*simpletable.Cell{
 			{}, {}, {}, {}, {}, {},
 			{Align: simpletable.AlignRight, Text: "Subtotal"},
-			{Align: simpletable.AlignRight, Text: FormatAsset(&usdFteTotal)},
-			{}, {}, {},
+			{Align: simpletable.AlignRight, Text: util.FormatAsset(&usdFteTotal)},
+			{}, {}, {}, {},
 		},
 	}
 

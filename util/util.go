@@ -1,7 +1,7 @@
-package views
+package util
 
 import (
-	"math"
+  "math"
 	"math/big"
 
 	"github.com/eoscanada/eos-go"
@@ -16,4 +16,14 @@ func FormatAsset(a *eos.Asset) string {
 		return ac.FormatMoneyBigFloat(big.NewFloat(float64(a.Amount) / math.Pow10(int(a.Precision))))
 	}
 	return a.String()
+}
+
+func AssetMult(a eos.Asset, coeff *big.Float) eos.Asset {
+  //var amount big.Int
+  var f big.Float
+  f.SetInt(big.NewInt(int64(a.Amount)))
+  amount, _ := f.Mul(&f, coeff).Int64() // big.NewInt(int64(a.Amount)).Mul(coeff)
+  newAmount := eos.Int64(amount)
+  // intObject := big.NewInt(amount)
+  return eos.Asset{Amount: newAmount, Symbol: a.Symbol}
 }

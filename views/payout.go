@@ -1,6 +1,7 @@
 package views
 
 import (
+	"github.com/hypha-dao/daoctl/util"
 	"strconv"
 
 	"github.com/alexeyco/simpletable"
@@ -51,11 +52,11 @@ func PayoutTable(payouts []models.Payout) *simpletable.Table {
 			{Align: simpletable.AlignRight, Text: string(payouts[index].Receiver)},
 			{Align: simpletable.AlignLeft, Text: payouts[index].Title},
 			{Align: simpletable.AlignRight, Text: strconv.FormatFloat(payouts[index].DeferredPay*100, 'f', -1, 64)},
-			{Align: simpletable.AlignRight, Text: FormatAsset(&payouts[index].Husd)},
-			{Align: simpletable.AlignRight, Text: FormatAsset(&payouts[index].Hypha)},
-			{Align: simpletable.AlignRight, Text: FormatAsset(&payouts[index].Hvoice)},
-			{Align: simpletable.AlignRight, Text: FormatAsset(&payouts[index].SeedsEscrow)},
-			{Align: simpletable.AlignRight, Text: FormatAsset(&payouts[index].SeedsLiquid)},
+			{Align: simpletable.AlignRight, Text: util.FormatAsset(&payouts[index].Husd)},
+			{Align: simpletable.AlignRight, Text: util.FormatAsset(&payouts[index].Hypha)},
+			{Align: simpletable.AlignRight, Text: util.FormatAsset(&payouts[index].Hvoice)},
+			{Align: simpletable.AlignRight, Text: util.FormatAsset(&payouts[index].SeedsEscrow)},
+			{Align: simpletable.AlignRight, Text: util.FormatAsset(&payouts[index].SeedsLiquid)},
 			{Align: simpletable.AlignRight, Text: payouts[index].CreatedDate.Time.Format("2006 Jan 02")},
 			{Align: simpletable.AlignRight, Text: string(payouts[index].BallotName)[11:]},
 		}
@@ -68,11 +69,11 @@ func PayoutTable(payouts []models.Payout) *simpletable.Table {
 			{},
 			{},
 			{Align: simpletable.AlignRight, Text: "Subtotal"},
-			{Align: simpletable.AlignRight, Text: FormatAsset(&husdTotal)},
-			{Align: simpletable.AlignRight, Text: FormatAsset(&hyphaTotal)},
-			{Align: simpletable.AlignRight, Text: FormatAsset(&hvoiceTotal)},
-			{Align: simpletable.AlignRight, Text: FormatAsset(&seedsEscrowTotal)},
-			{Align: simpletable.AlignRight, Text: FormatAsset(&seedsLiquidTotal)},
+			{Align: simpletable.AlignRight, Text: util.FormatAsset(&husdTotal)},
+			{Align: simpletable.AlignRight, Text: util.FormatAsset(&hyphaTotal)},
+			{Align: simpletable.AlignRight, Text: util.FormatAsset(&hvoiceTotal)},
+			{Align: simpletable.AlignRight, Text: util.FormatAsset(&seedsEscrowTotal)},
+			{Align: simpletable.AlignRight, Text: util.FormatAsset(&seedsLiquidTotal)},
 			{}, {},
 		},
 	}

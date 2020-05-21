@@ -1,14 +1,20 @@
 package models
 
 import (
-	"context"
+  "context"
+  "fmt"
+  "github.com/hypha-dao/daoctl/util"
+  "github.com/ryanuber/columnize"
+  "math/big"
+  "strconv"
 
-	eos "github.com/eoscanada/eos-go"
+  "github.com/eoscanada/eos-go"
 )
 
 // Role is an approved or proposed role for the DAO
 type Role struct {
 	ID               uint64
+	PriorID          uint64
 	Approved         bool
 	Owner            eos.Name
 	BallotName       eos.Name
@@ -24,10 +30,33 @@ type Role struct {
 	CreatedDate      eos.BlockTimestamp
 }
 
+func (r *Role) String() string {
+  fteCapCost := util.AssetMult(r.AnnualUSDSalary, big.NewFloat(r.FullTimeCapacity))
+	output := []string{
+		fmt.Sprintf("Role ID|%v", strconv.Itoa(int(r.ID))),
+		fmt.Sprintf("Prior ID|%v", strconv.Itoa(int(r.PriorID))),
+		fmt.Sprintf("Owner|%v", string(r.Owner)),
+		fmt.Sprintf("Title|%v", string(r.Title)),
+		fmt.Sprintf("URL|%v", string(r.URL)),
+		fmt.Sprintf("Annual USD Salary|%v", util.FormatAsset(&r.AnnualUSDSalary)),
+		fmt.Sprintf("Minimum Time Commitment|%v", strconv.FormatFloat(r.MinTime*100, 'f', -1, 64)),
+		fmt.Sprintf("Minimum Deferred Pay|%v", strconv.FormatFloat(r.MinDeferred*100, 'f', -1, 64)),
+		fmt.Sprintf("Full Time Capacity|%v", strconv.FormatFloat(r.FullTimeCapacity, 'f', 1, 64)),
+		fmt.Sprintf("FTE Cap Cost|%v", util.FormatAsset(&fteCapCost)),
+		fmt.Sprintf("Start Period|%v", r.StartPeriod.StartTime.Time.Format("2006 Jan 02 15:04:05")),
+		fmt.Sprintf("End Period|%v", r.EndPeriod.EndTime.Time.Format("2006 Jan 02 15:04:05")),
+		fmt.Sprintf("Created Date|%v", r.CreatedDate.Time.Format("2006 Jan 02 15:04:05")),
+		fmt.Sprintf("Ballot ID|%v", string(r.BallotName)[11:]),
+		fmt.Sprintf("Description|%v", r.Description),
+	}
+	return columnize.SimpleFormat(output)
+}
+
 // NewRole creates a new Role instance based on the DAOObject
 func NewRole(daoObj DAOObject, periods []Period) Role {
 	var r Role
 	r.ID = daoObj.ID
+	r.PriorID = daoObj.Ints["prior_id"]
 	r.Title = daoObj.Strings["title"]
 	r.Owner = daoObj.Names["owner"]
 	r.BallotName = daoObj.Names["ballot_id"]
@@ -41,6 +70,12 @@ func NewRole(daoObj DAOObject, periods []Period) Role {
 	r.EndPeriod = periods[daoObj.Ints["end_period"]]
 	r.CreatedDate = daoObj.CreatedDate
 	return r
+}
+
+// NewRoleByID loads a single role based on its ID number
+func NewRoleByID(ctx context.Context, api *eos.API, periods []Period, ID uint64) Role {
+	daoObj := LoadObject(ctx, api, "role", ID)
+	return NewRole(daoObj, periods)
 }
 
 // ProposedRoles provides the set of active approved roles

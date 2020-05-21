@@ -2,8 +2,10 @@ package models
 
 import (
 	"context"
+	"strconv"
 
 	eos "github.com/eoscanada/eos-go"
+	"github.com/spf13/viper"
 )
 
 // NameKV struct
@@ -83,6 +85,22 @@ func LoadObjects(ctx context.Context, api *eos.API, scope string) []Object {
 	response, _ := api.GetTableRows(ctx, request)
 	response.JSONToStructs(&objects)
 	return objects
+}
+
+// LoadObject loads an existing DAO object by its scope and ID
+func LoadObject(ctx context.Context, api *eos.API, scope string, ID uint64) DAOObject {
+	var objects []Object
+	var request eos.GetTableRowsRequest
+	request.Code = viper.GetString("DAOContract")
+	request.Scope = scope
+	request.Table = "objects"
+	request.Limit = 1
+	request.LowerBound = strconv.Itoa(int(ID))
+	request.UpperBound = strconv.Itoa(int(ID))
+	request.JSON = true
+	response, _ := api.GetTableRows(ctx, request)
+	response.JSONToStructs(&objects)
+	return ToDAOObject(objects[0])
 }
 
 // DAOObject is a generic object from the objects table
