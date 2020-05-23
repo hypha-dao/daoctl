@@ -4,7 +4,6 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"os"
 
 	"github.com/ryanuber/columnize"
 
@@ -66,19 +65,19 @@ func printAccount(account *eos.AccountResp) {
 	}
 }
 
-func errorCheck(prefix string, err error) {
-	if err != nil {
-		fmt.Printf("ERROR: %s: %s\n", prefix, err)
-		os.Exit(1)
-	}
-}
+// func errorCheck(prefix string, err error) {
+// 	if err != nil {
+// 		fmt.Printf("ERROR: %s: %s\n", prefix, err)
+// 		os.Exit(1)
+// 	}
+// }
 
-func toAccount(in, field string) eos.AccountName {
-	acct, err := cli.ToAccountName(in)
-	errorCheck(fmt.Sprintf("invalid account format for %q", field), err)
+// func toAccount(in, field string) eos.AccountName {
+// 	acct, err := cli.ToAccountName(in)
+// 	errorCheck(fmt.Sprintf("invalid account format for %q", field), err)
 
-	return acct
-}
+// 	return acct
+// }
 
 func init() {
 	getCmd.AddCommand(getAccountCmd)

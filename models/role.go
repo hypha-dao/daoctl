@@ -78,29 +78,18 @@ func NewRoleByID(ctx context.Context, api *eos.API, periods []Period, ID uint64)
 	return NewRole(daoObj, periods)
 }
 
-// ProposedRoles provides the set of active approved roles
-func ProposedRoles(ctx context.Context, api *eos.API, periods []Period) []Role {
-	objects := LoadObjects(ctx, api, "proposal")
+// Roles provides the set of active approved roles
+func Roles(ctx context.Context, api *eos.API, periods []Period, scope string) []Role {
+	objects := LoadObjects(ctx, api, scope)
 	var roles []Role
 	for index := range objects {
-		daoObject := ToDAOObject(objects[index])
-		if daoObject.Names["type"] == "role" {
-			role := NewRole(ToDAOObject(objects[index]), periods)
-			role.Approved = true
-			roles = append(roles, role)
-		}
+    daoObject := ToDAOObject(objects[index])
+    if daoObject.Names["type"] == "role" {
+      role := NewRole(daoObject, periods)
+      role.Approved = scopeApprovals(scope)
+      roles = append(roles, role)
+    }
 	}
 	return roles
 }
 
-// Roles provides the set of active approved roles
-func Roles(ctx context.Context, api *eos.API, periods []Period) []Role {
-	objects := LoadObjects(ctx, api, "role")
-	var roles []Role
-	for index := range objects {
-		role := NewRole(ToDAOObject(objects[index]), periods)
-		role.Approved = true
-		roles = append(roles, role)
-	}
-	return roles
-}

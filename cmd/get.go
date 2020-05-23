@@ -12,7 +12,7 @@ var getCmd = &cobra.Command{
 }
 
 func init() {
-	rootCmd.AddCommand(getCmd)
+	RootCmd.AddCommand(getCmd)
 
 //  getCmd.Flags().StringP("type", "t", "role", "Type of object to retrieve")
 

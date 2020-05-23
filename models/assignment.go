@@ -27,13 +27,6 @@ type Assignment struct {
 	CreatedDate         eos.BlockTimestamp
 }
 
-func scopeApprovals(scope string) bool {
-	if scope == "assignment" {
-		return true
-	}
-	return false
-}
-
 // NewAssignment converts a generic DAO Object to a typed Assignment
 func NewAssignment(daoObj DAOObject, roles []Role, periods []Period) Assignment {
 	var a Assignment

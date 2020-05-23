@@ -15,27 +15,27 @@ import (
 var getAssignmentCmd = &cobra.Command{
 	Use:   "assignments",
 	Short: "retrieve assignments",
-	Long:  "retrieve all active assignments",
+	Long:  "retrieve and print assignment tables",
 	Run: func(cmd *cobra.Command, args []string) {
 		api := eos.New(viper.GetString("EosioEndpoint"))
 		ctx := context.Background()
 
 		periods := models.LoadPeriods(api)
-		roles := models.Roles(ctx, api, periods)
+		roles := models.Roles(ctx, api, periods, "role")
 
-		if viper.GetBool("get-assignments-cmd-active") == true {
+		if viper.GetBool("global-active") == true {
 			printAssignmentTable(ctx, api, roles, periods, "Active Assignment", "assignment")
 		}
 
-		if viper.GetBool("get-assignments-cmd-include-proposals") == true {
+		if viper.GetBool("global-include-proposals") == true {
 			printAssignmentTable(ctx, api, roles, periods, "Current Assignment Proposals", "proposal")
 		}
 
-		if viper.GetBool("get-assignments-cmd-failed-proposals") == true {
+		if viper.GetBool("global-failed-proposals") == true {
 			printAssignmentTable(ctx, api, roles, periods, "Failed Assignment Proposals", "failedprops")
 		}
 
-		if viper.GetBool("get-assignments-cmd-include-archive") == true {
+		if viper.GetBool("global-include-archive") == true {
 			printAssignmentTable(ctx, api, roles, periods, "Archive of Assignment Proposals", "proparchive")
 		}
 	},
@@ -51,9 +51,4 @@ func printAssignmentTable(ctx context.Context, api *eos.API, roles []models.Role
 
 func init() {
 	getCmd.AddCommand(getAssignmentCmd)
-	getAssignmentCmd.Flags().BoolP("include-proposals", "i", false, "include a table with proposals in the output")
-	getAssignmentCmd.Flags().BoolP("failed-proposals", "f", false, "include a table with failed proposals")
-	getAssignmentCmd.Flags().BoolP("active", "a", true, "show active assignments")
-	getAssignmentCmd.Flags().BoolP("include-archive", "o", true, "include a table with the archive of assignment proposals")
-
 }

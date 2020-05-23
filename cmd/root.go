@@ -30,8 +30,8 @@ Treasury:
 TelosDecideContract: trailservice
 `)
 
-// rootCmd represents the base command when called without any subcommands
-var rootCmd = &cobra.Command{
+// RootCmd represents the base command when called without any subcommands
+var RootCmd = &cobra.Command{
 	Use:   "daoctl",
 	Short: "Decentralized Autonomous Organization (DAO) control application for Hypha DAO query and actions",
 	Long: `Decentralized Autonomous Organization (DAO) control application for Hypha DAO query and actions.
@@ -45,9 +45,9 @@ Hypha - Dapps for a New World - visit online @ hypha.earth`,
 }
 
 // Execute adds all child commands to the root command and sets flags appropriately.
-// This is called by main.main(). It only needs to happen once to the rootCmd.
+// This is called by main.main(). It only needs to happen once to the RootCmd.
 func Execute() {
-	if err := rootCmd.Execute(); err != nil {
+	if err := RootCmd.Execute(); err != nil {
 		fmt.Println(err)
 		os.Exit(1)
 	}
@@ -56,10 +56,16 @@ func Execute() {
 func init() {
 	cobra.OnInitialize(initConfig)
 
-	rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is ./daoctl.yaml)")
-	// rootCmd.Flags().BoolP("assets-as-floats", "f", false, "Format assets objects as floats (helpful for CSV export)")
-	rootCmd.Flags().BoolP("include-proposals", "p", false, "Include proposals when retrieving objects")
-
+	RootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is ./daoctl.yaml)")
+	// RootCmd.Flags().BoolP("assets-as-floats", "f", false, "Format assets objects as floats (helpful for CSV export)")
+	//RootCmd.Flags().BoolP("include-proposals", "p", false, "Include proposals when retrieving objects")
+	RootCmd.PersistentFlags().StringP("vault-file", "", "./eosc-vault.json", "Wallet file that contains encrypted key material")
+	RootCmd.PersistentFlags().IntP("delay-sec", "", 0, "Set time to wait before transaction is executed, in seconds. Defaults to 0 second.")
+	RootCmd.PersistentFlags().IntP("expiration", "", 30, "Set time before transaction expires, in seconds. Defaults to 30 seconds.")
+  RootCmd.PersistentFlags().BoolP("include-archive", "o", false, "include a table with the archive objects")
+  RootCmd.PersistentFlags().BoolP("include-proposals", "i", false, "include a table with proposals in the output")
+  RootCmd.PersistentFlags().BoolP("active", "a", true, "show active objects")
+  RootCmd.PersistentFlags().BoolP("failed-proposals", "", false, "include a table with failed proposals")
 }
 
 // initConfig reads in config file and ENV variables if set.
@@ -95,7 +101,7 @@ func initConfig() {
 	replacer := strings.NewReplacer("-", "_")
 	viper.SetEnvKeyReplacer(replacer)
 
-	recurseViperCommands(rootCmd, nil)
+	recurseViperCommands(RootCmd, nil)
 
 	if viper.GetBool("global-debug") {
 		zlog, err := zap.NewDevelopment()

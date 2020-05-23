@@ -22,24 +22,35 @@ var getPayoutCmd = &cobra.Command{
 		ctx := context.Background()
 
 		periods := models.LoadPeriods(api)
-		payouts := models.Payouts(ctx, api, periods)
-		payoutsTable := views.PayoutTable(payouts)
-		payoutsTable.SetStyle(simpletable.StyleCompactLite)
 
-		fmt.Println("\n\n" + payoutsTable.String() + "\n\n")
+    if viper.GetBool("global-active") == true {
+      printPayoutTable(ctx, api, periods, "Completed Payouts", "payout")
+    }
 
-		if viper.GetBool("get-payouts-cmd-include-proposals") == true {
-			propPayout := models.ProposedPayouts(ctx, api, periods)
-			propPayoutTable := views.PayoutTable(propPayout)
-			propPayoutTable.SetStyle(simpletable.StyleCompactLite)
-			fmt.Println("\n\n" + propPayoutTable.String() + "\n\n")
-			return
-		}
+    if viper.GetBool("global-include-proposals") == true {
+      printPayoutTable(ctx, api, periods, "Open Payout Proposals", "proposal")
+    }
+
+    if viper.GetBool("global-failed-proposals") == true {
+      printPayoutTable(ctx, api, periods, "Failed Payout Proposals", "failedprops")
+    }
+
+    if viper.GetBool("global-include-archive") == true {
+      printPayoutTable(ctx, api, periods, "Archived Payout Proposals", "proparchive")
+    }
 	},
+}
+
+func printPayoutTable(ctx context.Context, api *eos.API, periods []models.Period, title, scope string) {
+  fmt.Println("\n", title)
+  payouts := models.Payouts(ctx, api, periods, scope)
+  payoutsTable := views.PayoutTable(payouts)
+  payoutsTable.SetStyle(simpletable.StyleCompactLite)
+  fmt.Println("\n" + payoutsTable.String() + "\n\n")
 }
 
 func init() {
 	getCmd.AddCommand(getPayoutCmd)
-	getPayoutCmd.Flags().BoolP("include-proposals", "i", false, "include proposals in the output")
+	//getPayoutCmd.Flags().BoolP("include-proposals", "i", false, "include proposals in the output")
 	// getPayoutCmd.Flags().BoolP("", "i", false, "include proposals in the output")
 }

@@ -16,29 +16,39 @@ var getRolesCmd = &cobra.Command{
 	Use:   "roles [account name]",
 	Short: "retrieve roles",
 	Long:  "retrieve all active roles For a json dump, append the argument --json.",
-	// Args:  cobra.RangeArgs(1, 2),
 	Run: func(cmd *cobra.Command, args []string) {
 		api := eos.New(viper.GetString("EosioEndpoint"))
 		ctx := context.Background()
 
 		periods := models.LoadPeriods(api)
-		roles := models.Roles(ctx, api, periods)
-		rolesTable := views.RoleTable(roles)
-		rolesTable.SetStyle(simpletable.StyleCompactLite)
 
-		fmt.Println("\n\n" + rolesTable.String() + "\n\n")
+    if viper.GetBool("global-active") == true {
+      printRolesTable(ctx, api, periods, "Current Roles", "role")
+    }
 
-		if viper.GetBool("get-roles-cmd-include-proposals") == true {
-			propRoles := models.ProposedRoles(ctx, api, periods)
-			propRolesTable := views.RoleTable(propRoles)
-			propRolesTable.SetStyle(simpletable.StyleCompactLite)
-			fmt.Println("\n\n" + propRolesTable.String() + "\n\n")
-			return
-		}
+    if viper.GetBool("global-include-proposals") == true {
+      printRolesTable(ctx, api, periods, "Current Role Proposals", "proposal")
+    }
+
+    if viper.GetBool("global-failed-proposals") == true {
+      printRolesTable(ctx, api, periods, "Failed Role Proposals", "failedprops")
+    }
+
+    if viper.GetBool("global-include-archive") == true {
+      printRolesTable(ctx, api, periods, "Archive of Role Proposals", "proparchive")
+    }
 	},
 }
 
+func printRolesTable (ctx context.Context, api *eos.API, periods []models.Period, title, scope string) {
+  fmt.Println("\n", title)
+  roles := models.Roles(ctx,api, periods, scope)
+  rolesTable := views.RoleTable(roles)
+  rolesTable.SetStyle(simpletable.StyleCompactLite)
+
+  fmt.Println("\n" + rolesTable.String() + "\n\n")
+}
+
 func init() {
-	getCmd.AddCommand(getRoleCmd)
-	getRoleCmd.Flags().BoolP("include-proposals", "i", false, "include proposals in the output")
+	getCmd.AddCommand(getRolesCmd)
 }

@@ -57,28 +57,31 @@ func NewPayout(daoObj DAOObject, periods []Period) Payout {
 }
 
 // ProposedPayouts provides the active payout proposals
-func ProposedPayouts(ctx context.Context, api *eos.API, periods []Period) []Payout {
-	objects := LoadObjects(ctx, api, "proposal")
-	var propPayouts []Payout
-	for index := range objects {
-		daoObject := ToDAOObject(objects[index])
-		if daoObject.Names["type"] == "payout" {
-			payout := NewPayout(daoObject, periods)
-			payout.Approved = false
-			propPayouts = append(propPayouts, payout)
-		}
-	}
-	return propPayouts
-}
+//func ProposedPayouts(ctx context.Context, api *eos.API, periods []Period) []Payout {
+//	objects := LoadObjects(ctx, api, "proposal")
+//	var propPayouts []Payout
+//	for index := range objects {
+//		daoObject := ToDAOObject(objects[index])
+//		if daoObject.Names["type"] == "payout" {
+//			payout := NewPayout(daoObject, periods)
+//			payout.Approved = false
+//			propPayouts = append(propPayouts, payout)
+//		}
+//	}
+//	return propPayouts
+//}
 
 // Payouts provides the set of active approved payouts
-func Payouts(ctx context.Context, api *eos.API, periods []Period) []Payout {
-	objects := LoadObjects(ctx, api, "payout")
+func Payouts(ctx context.Context, api *eos.API, periods []Period, scope string) []Payout {
+	objects := LoadObjects(ctx, api, scope)
 	var payouts []Payout
 	for index := range objects {
-		payout := NewPayout(ToDAOObject(objects[index]), periods)
-		payout.Approved = true
-		payouts = append(payouts, payout)
+    daoObject := ToDAOObject(objects[index])
+    if daoObject.Names["type"] == "payout" {
+      payout := NewPayout(daoObject, periods)
+      payout.Approved = scopeApprovals(scope)
+      payouts = append(payouts, payout)
+    }
 	}
 	return payouts
 }

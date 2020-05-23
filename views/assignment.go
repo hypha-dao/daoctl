@@ -45,6 +45,9 @@ func AssignmentTable(assignments []models.Assignment) *simpletable.Table {
 
 	for index := range assignments {
 
+		if assignments[index].HusdPerPhase.Symbol.Symbol == "USD" {
+			assignments[index].HusdPerPhase.Symbol.Symbol = "HUSD"
+		}
 		husdTotal = husdTotal.Add(assignments[index].HusdPerPhase)
 		hyphaTotal = hyphaTotal.Add(assignments[index].HyphaPerPhase)
 		hvoiceTotal = hvoiceTotal.Add(assignments[index].HvoicePerPhase)

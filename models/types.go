@@ -77,7 +77,7 @@ type Object struct {
 func LoadObjects(ctx context.Context, api *eos.API, scope string) []Object {
 	var objects []Object
 	var request eos.GetTableRowsRequest
-	request.Code = "dao.hypha"
+  request.Code = viper.GetString("DAOContract")
 	request.Scope = scope
 	request.Table = "objects"
 	request.Limit = 1000
