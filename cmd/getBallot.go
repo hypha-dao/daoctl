@@ -1,19 +1,20 @@
 package cmd
 
 import (
-	"context"
-	"fmt"
+  "context"
+  "fmt"
   "github.com/hypha-dao/daoctl/util"
   "math"
-	"math/big"
+  "math/big"
+  "time"
 
-	eos "github.com/eoscanada/eos-go"
-	"github.com/hypha-dao/daoctl/models"
-	"github.com/hypha-dao/daoctl/views"
-	"github.com/leekchan/accounting"
-	"github.com/ryanuber/columnize"
-	"github.com/spf13/cobra"
-	"github.com/spf13/viper"
+  eos "github.com/eoscanada/eos-go"
+  "github.com/hypha-dao/daoctl/models"
+  "github.com/hypha-dao/daoctl/views"
+  "github.com/leekchan/accounting"
+  "github.com/ryanuber/columnize"
+  "github.com/spf13/cobra"
+  "github.com/spf13/viper"
 )
 
 var getBallotCmd = &cobra.Command{
@@ -46,22 +47,39 @@ var getBallotCmd = &cobra.Command{
 		votes := big.NewFloat(float64(totalVotes.Amount) / math.Pow10(int(hvoice.Precision)))
 		quorum := supply.Mul(supply, big.NewFloat(0.2))
 
-		var quorumMet bool
+		var quorumMet, isPassing, isVotingClosed bool
 		quorumMet = false
+		isPassing = false
+		isVotingClosed = false
 		quorumFlag := votes.Cmp(quorum)
 		if quorumFlag > 0 {
 			quorumMet = true
 		}
+
+		requiredVotes := util.AssetMult(ballot.RejectVotes, big.NewFloat(4))
+		if ballot.PassVotes.Amount > requiredVotes.Amount {
+		  isPassing = true
+    }
+
+    if ballot.EndTime.Before(time.Now()) {
+      isVotingClosed = true
+    }
+
 
 		fmt.Println()
 		output := []string{
 			fmt.Sprintf("HVOICE Supply|%v", util.FormatAsset(hvoice)),
 			fmt.Sprintf("Quorum|%v", ac.FormatMoneyBigFloat(quorum)),
 			fmt.Sprintf("Votes|%v", ac.FormatMoneyBigFloat(votes)),
-			fmt.Sprintf("Quorum Met|%v", quorumMet),
-		}
+			fmt.Sprintln(),
+			fmt.Sprintf("Quorum Met?|%v", quorumMet),
+      fmt.Sprintf("Vote Passing?|%v", isPassing),
+      fmt.Sprintf("Voting Closed?|%v", isVotingClosed),
+    }
 		fmt.Println(columnize.SimpleFormat(output))
 		fmt.Println()
+
+		//if ballot.Status != "closed"
 	},
 }
 

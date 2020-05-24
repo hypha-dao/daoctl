@@ -16,8 +16,8 @@ type Ballot struct {
 	Status      string               `json:"status"`
 	VoteTally   map[string]eos.Asset `json:"options"`
 	Votes       []Vote
-	// PassVotes   eos.Asset
-	// RejectVotes eos.Asset
+	PassVotes   eos.Asset
+	RejectVotes eos.Asset
 	BeginTime eos.BlockTimestamp `json:"begin_time"`
 	EndTime   eos.BlockTimestamp `json:"end_time"`
 }
@@ -64,13 +64,23 @@ func NewBallot(ctx context.Context, api *eos.API, ballotName eos.Name) (*Ballot,
 	}
 	voteResponse.JSONToStructs(&votes)
 
+  votesAgainstTotal, _ := eos.NewAssetFromString("0.00 HVOICE")
+  votesForTotal, _ := eos.NewAssetFromString("0.00 HVOICE")
+
 	for _, vote := range votes {
 		vote.VoteSelections = make(map[string]eos.Asset)
 		for index, selection := range vote.WeightedVotes {
 			vote.VoteSelections[selection.Key] = vote.WeightedVotes[index].Value
+			if selection.Key == "pass" {
+			  votesForTotal = votesForTotal.Add(vote.WeightedVotes[index].Value)
+      } else {
+        votesAgainstTotal = votesAgainstTotal.Add(vote.WeightedVotes[index].Value)
+      }
 		}
 	}
 
+  ballot[0].PassVotes = votesForTotal
+  ballot[0].RejectVotes = votesAgainstTotal
 	ballot[0].Votes = votes
 	return &ballot[0], nil
 }
