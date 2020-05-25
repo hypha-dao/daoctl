@@ -59,8 +59,8 @@ func VotesTable(votes []models.Vote) (*simpletable.Table, eos.Asset) {
 
 		r := []*simpletable.Cell{
 			{Align: simpletable.AlignLeft, Text: string(vote.Voter)},
-			{Align: simpletable.AlignRight, Text: util.FormatAsset(&votesFor)},
-			{Align: simpletable.AlignRight, Text: util.FormatAsset(&votesAgainst)},
+			{Align: simpletable.AlignRight, Text: util.FormatAsset(&votesFor, 0)},
+			{Align: simpletable.AlignRight, Text: util.FormatAsset(&votesAgainst, 0)},
 			{Align: simpletable.AlignRight, Text: vote.VotingTime.Time.Format("2006 Jan 02 15:04:05")},
 		}
 		table.Body.Cells = append(table.Body.Cells, r)
@@ -69,8 +69,8 @@ func VotesTable(votes []models.Vote) (*simpletable.Table, eos.Asset) {
 	table.Footer = &simpletable.Footer{
 		Cells: []*simpletable.Cell{
 			{Align: simpletable.AlignRight, Text: "Total"},
-			{Align: simpletable.AlignRight, Text: util.FormatAsset(&votesForTotal)},
-			{Align: simpletable.AlignRight, Text: util.FormatAsset(&votesAgainstTotal)},
+			{Align: simpletable.AlignRight, Text: util.FormatAsset(&votesForTotal, 0)},
+			{Align: simpletable.AlignRight, Text: util.FormatAsset(&votesAgainstTotal, 0)},
 			{},
 		},
 	}

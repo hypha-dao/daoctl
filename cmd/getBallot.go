@@ -68,7 +68,7 @@ var getBallotCmd = &cobra.Command{
 
 		fmt.Println()
 		output := []string{
-			fmt.Sprintf("HVOICE Supply|%v", util.FormatAsset(hvoice)),
+			fmt.Sprintf("HVOICE Supply|%v", util.FormatAsset(hvoice, 0)),
 			fmt.Sprintf("Quorum|%v", ac.FormatMoneyBigFloat(quorum)),
 			fmt.Sprintf("Votes|%v", ac.FormatMoneyBigFloat(votes)),
 			fmt.Sprintln(),

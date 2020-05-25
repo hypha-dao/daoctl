@@ -51,8 +51,8 @@ func RoleTable(roles []models.Role) *simpletable.Table {
 			{Align: simpletable.AlignRight, Text: strconv.FormatFloat(roles[index].MinTime*100, 'f', -1, 64)},
 			{Align: simpletable.AlignRight, Text: strconv.FormatFloat(roles[index].MinDeferred*100, 'f', -1, 64)},
 			{Align: simpletable.AlignRight, Text: strconv.FormatFloat(roles[index].FullTimeCapacity, 'f', 1, 64)},
-			{Align: simpletable.AlignRight, Text: util.FormatAsset(&roles[index].AnnualUSDSalary)},
-			{Align: simpletable.AlignRight, Text: util.FormatAsset(&usdFte)},
+			{Align: simpletable.AlignRight, Text: util.FormatAsset(&roles[index].AnnualUSDSalary, 0)},
+			{Align: simpletable.AlignRight, Text: util.FormatAsset(&usdFte, 0)},
 			{Align: simpletable.AlignRight, Text: roles[index].StartPeriod.StartTime.Time.Format("2006 Jan 02")},
 			{Align: simpletable.AlignRight, Text: roles[index].EndPeriod.EndTime.Time.Format("2006 Jan 02")},
 			{Align: simpletable.AlignRight, Text: string(roles[index].BallotName)[11:]},
@@ -66,7 +66,7 @@ func RoleTable(roles []models.Role) *simpletable.Table {
 		Cells: []*simpletable.Cell{
 			{}, {}, {}, {}, {}, {},
 			{Align: simpletable.AlignRight, Text: "Subtotal"},
-			{Align: simpletable.AlignRight, Text: util.FormatAsset(&usdFteTotal)},
+			{Align: simpletable.AlignRight, Text: util.FormatAsset(&usdFteTotal, 0)},
 			{}, {}, {}, {},
 		},
 	}

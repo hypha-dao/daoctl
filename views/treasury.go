@@ -32,7 +32,7 @@ func TreasuryTable(treasurys []models.TreasuryHolder) (*simpletable.Table, eos.A
 
 			r := []*simpletable.Cell{
 				{Align: simpletable.AlignRight, Text: string(treasurys[index].TokenHolder)},
-				{Align: simpletable.AlignRight, Text: util.FormatAsset(&treasurys[index].Balance)},
+				{Align: simpletable.AlignRight, Text: util.FormatAsset(&treasurys[index].Balance, 2)},
 			}
 			table.Body.Cells = append(table.Body.Cells, r)
 		}
@@ -41,7 +41,7 @@ func TreasuryTable(treasurys []models.TreasuryHolder) (*simpletable.Table, eos.A
 	table.Footer = &simpletable.Footer{
 		Cells: []*simpletable.Cell{
 			{Align: simpletable.AlignRight, Text: "Total"},
-			{Align: simpletable.AlignRight, Text: util.FormatAsset(&balanceTotal)},
+			{Align: simpletable.AlignRight, Text: util.FormatAsset(&balanceTotal, 2)},
 		},
 	}
 

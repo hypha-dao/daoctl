@@ -54,12 +54,12 @@ var getTreasuryCmd = &cobra.Command{
 		coverage := float64(usd / circulating * 100)
 		netTreasury := totalAssets.Sub(circulatingBalance)
 		output := []string{
-			fmt.Sprintf("Awaiting burning|%v", util.FormatAsset(&treasury.BankBalance)),
-			fmt.Sprintf("Circulating|%v", util.FormatAsset(&circulatingBalance)),
-			fmt.Sprintf("Eth USDT balance|%v", util.FormatAsset(&treasury.EthUSDTBalance)),
-			fmt.Sprintf("Additional balances|%v", util.FormatAsset(&addlBalance)),
-			fmt.Sprintf("Total balances|%v", util.FormatAsset(&totalAssets)),
-			fmt.Sprintf("Net Treasury balance|%v", util.FormatAsset(&netTreasury)),
+			fmt.Sprintf("Awaiting burning|%v", util.FormatAsset(&treasury.BankBalance, 2)),
+			fmt.Sprintf("Circulating|%v", util.FormatAsset(&circulatingBalance, 2)),
+			fmt.Sprintf("Eth USDT balance|%v", util.FormatAsset(&treasury.EthUSDTBalance, 2)),
+			fmt.Sprintf("Additional balances|%v", util.FormatAsset(&addlBalance, 2)),
+			fmt.Sprintf("Total balances|%v", util.FormatAsset(&totalAssets, 2)),
+			fmt.Sprintf("Net Treasury balance|%v", util.FormatAsset(&netTreasury, 2)),
 			string(fmt.Sprintf("Coverage|%v", strconv.FormatFloat(coverage, 'f', 3, 64)) + " %"),
 		}
 
