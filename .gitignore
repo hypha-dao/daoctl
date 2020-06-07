@@ -7,3 +7,4 @@ daoctl.exe
 dao-backup-*
 *.json
 test-payloads/
+dist/

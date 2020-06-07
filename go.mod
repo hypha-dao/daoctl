@@ -9,7 +9,6 @@ require (
 	github.com/eoscanada/eosc v1.4.0
 	github.com/leekchan/accounting v0.0.0-20191218023648-17a4ce5f94d4
 	github.com/mattn/go-runewidth v0.0.9 // indirect
-	github.com/miolini/jsonf v0.0.0-20160708004310-4a3ddddc29a9
 	github.com/mitchellh/go-homedir v1.1.0
 	github.com/pkg/errors v0.8.1
 	github.com/ryanuber/columnize v0.0.0-20170703205827-abc90934186a
