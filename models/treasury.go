@@ -151,10 +151,10 @@ func (t *Treasury) loadEthUSDT(usdtTokenAddress, treasuryWallet string) {
 	}
 	// fmt.Println("USDT balance: ", string(body))
 	if string(body) == "0.0" {
-	  fmt.Println("WARNING: Balance of USDT in multisig wallet is 0.00")
-    t.EthUSDTBalance, err = eos.NewAssetFromString("0.00 HUSD")
-    return
-  }
+		fmt.Println("WARNING: Balance of USDT in multisig wallet is 0.00")
+		t.EthUSDTBalance, err = eos.NewAssetFromString("0.00 HUSD")
+		return
+	}
 	t.EthUSDTBalance, err = eos.NewAssetFromString(string(body) + " HUSD")
 	if err != nil {
 		fmt.Println("Unable to format ETH USDT balance as an asset type: " + string(body) + " HUSD")

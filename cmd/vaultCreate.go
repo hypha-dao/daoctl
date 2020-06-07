@@ -16,15 +16,17 @@ import (
 // vaultCreateCmd represents the create command
 var vaultCreateCmd = &cobra.Command{
 	Use:   "create",
-	Short: "Create a new encrypted EOS keys vault",
-	Long: `Create a new encrypted EOS keys vault.
+	Short: "Create a new encrypted key vault",
+	Long: `Create a new encrypted key vault. 
 
-A vault contains encrypted private keys, and with 'eosc', can be used to
+This functionality has been copied from the 'eosc' project. https://github.com/eoscanada/eosc
+
+A vault contains encrypted private keys, and with 'daoctl' or 'eosc', can be used to
 securely sign transactions.
 
 You can create a passphrase protected vault with:
 
-    eosc vault create --keys=2
+    daoctl vault create --keys=2
 
 This uses the default --vault-type=passphrase
 
@@ -32,12 +34,12 @@ You can create a Google Cloud Platform KMS-wrapped vault with:
 
     eosc vault create --keys=2 --vault-type=kms-gcp --kms-gcp-keypath projects/.../locations/.../keyRings/.../cryptoKeys/name
 
-You can then use this vault for the different eosc operations.`,
+You can then use this vault for the different eosc/daoctl operations.`,
 	Run: func(cmd *cobra.Command, args []string) {
 		walletFile := viper.GetString("global-vault-file")
 
 		if _, err := os.Stat(walletFile); err == nil {
-			fmt.Printf("Wallet file %q already exists, rename it before running `eosc vault create`.\n", walletFile)
+			fmt.Printf("Wallet file %q already exists, rename it before running `daoctl vault create`.\n", walletFile)
 			os.Exit(1)
 		}
 

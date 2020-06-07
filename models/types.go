@@ -3,6 +3,7 @@ package models
 import (
 	"context"
 	"strconv"
+	"time"
 
 	eos "github.com/eoscanada/eos-go"
 	"github.com/spf13/viper"
@@ -77,7 +78,7 @@ type Object struct {
 func LoadObjects(ctx context.Context, api *eos.API, scope string) []Object {
 	var objects []Object
 	var request eos.GetTableRowsRequest
-  request.Code = viper.GetString("DAOContract")
+	request.Code = viper.GetString("DAOContract")
 	request.Scope = scope
 	request.Table = "objects"
 	request.Limit = 1000
@@ -154,4 +155,13 @@ func ToDAOObject(objs Object) DAOObject {
 	daoObject.CreatedDate = objs.CreatedDate
 	daoObject.UpdatedDate = objs.UpdatedDate
 	return daoObject
+}
+
+// QrAction ...
+type QrAction struct {
+	Timestamp      time.Time `json:"@timestamp"`
+	TrxID          string    `json:"trx_id"`
+	ActionContract string
+	ActionName     string
+	Data           string
 }

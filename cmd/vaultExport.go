@@ -9,7 +9,7 @@ import (
 // vaultExportCommand represents the export command
 var vaultExportCommand = &cobra.Command{
 	Use:   "export",
-	Short: "Export private keys (and corresponding public keys) inside an eosc vault.",
+	Short: "Export private keys (and corresponding public keys) inside the vault.",
 	Run: func(cmd *cobra.Command, args []string) {
 		vault := mustGetWallet()
 

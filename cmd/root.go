@@ -1,19 +1,19 @@
 package cmd
 
 import (
-  "bytes"
-  "context"
-  "encoding/hex"
-  "fmt"
-  "os"
-  "strings"
+	"bytes"
+	"context"
+	"encoding/hex"
+	"fmt"
+	"os"
+	"strings"
 
-  "github.com/spf13/cobra"
-  "github.com/spf13/pflag"
-  "go.uber.org/zap"
+	"github.com/spf13/cobra"
+	"github.com/spf13/pflag"
+	"go.uber.org/zap"
 
-  homedir "github.com/mitchellh/go-homedir"
-  "github.com/spf13/viper"
+	homedir "github.com/mitchellh/go-homedir"
+	"github.com/spf13/viper"
 )
 
 var cfgFile string
@@ -59,15 +59,16 @@ func init() {
 	cobra.OnInitialize(initConfig)
 
 	RootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is ./daoctl.yaml)")
+	RootCmd.PersistentFlags().BoolP("debug", "", false, "Enables verbose debug messages")
 	// RootCmd.Flags().BoolP("assets-as-floats", "f", false, "Format assets objects as floats (helpful for CSV export)")
 	//RootCmd.Flags().BoolP("include-proposals", "p", false, "Include proposals when retrieving objects")
 	RootCmd.PersistentFlags().StringP("vault-file", "", "./eosc-vault.json", "Wallet file that contains encrypted key material")
 	//RootCmd.PersistentFlags().IntP("delay-sec", "", 0, "Set time to wait before transaction is executed, in seconds. Defaults to 0 second.")
 	RootCmd.PersistentFlags().IntP("expiration", "", 30, "Set time before transaction expires, in seconds. Defaults to 30 seconds.")
-  RootCmd.PersistentFlags().BoolP("include-archive", "o", false, "include a table with the archive objects")
-  RootCmd.PersistentFlags().BoolP("include-proposals", "i", false, "include a table with proposals in the output")
-  RootCmd.PersistentFlags().BoolP("active", "a", true, "show active objects")
-  RootCmd.PersistentFlags().BoolP("failed-proposals", "", false, "include a table with failed proposals")
+	RootCmd.PersistentFlags().BoolP("include-archive", "o", false, "include a table with the archive objects")
+	RootCmd.PersistentFlags().BoolP("include-proposals", "", false, "include a table with proposals in the output")
+	RootCmd.PersistentFlags().BoolP("active", "a", true, "show active objects")
+	RootCmd.PersistentFlags().BoolP("failed-proposals", "", false, "include a table with failed proposals")
 }
 
 // initConfig reads in config file and ENV variables if set.
@@ -112,21 +113,21 @@ func initConfig() {
 		}
 	}
 
-  api := getAPI()
-  colorRed := "\033[31m"
-  colorCyan := "\033[36m"
-  colorReset := "\033[0m"
-  info, err := api.GetInfo(context.Background())
-  if err != nil {
-    fmt.Print(string(colorRed), "\nWARNING: Unable to get Hypha Blockchain Node info. Please check the EosioEndpoint configuration.\n\n")
-  }
+	api := getAPI()
+	colorRed := "\033[31m"
+	colorCyan := "\033[36m"
+	colorReset := "\033[0m"
+	info, err := api.GetInfo(context.Background())
+	if err != nil {
+		fmt.Print(string(colorRed), "\nWARNING: Unable to get Hypha Blockchain Node info. Please check the EosioEndpoint configuration.\n\n")
+	}
 
-  if hex.EncodeToString(info.ChainID) == "4667b205c6838ef70ff7988f6e8257e8be0e1284a2f59699054a018f743b1d11" {
-    fmt.Print(string(colorRed), "\nWARNING: Connecting to the Hypha Production Mainnet")
-  } else if hex.EncodeToString(info.ChainID) == "1eaa0824707c8c16bd25145493bf062aecddfeb56c736f6ba6397f3195f33c9f" {
-    fmt.Print(string(colorCyan), "\nNETWORK: Connecting to the Hypha Test Network")
-  }
-  fmt.Println(string(colorReset))
+	if hex.EncodeToString(info.ChainID) == "4667b205c6838ef70ff7988f6e8257e8be0e1284a2f59699054a018f743b1d11" {
+		fmt.Print(string(colorRed), "\nWARNING: Connecting to the Hypha Production Mainnet")
+	} else if hex.EncodeToString(info.ChainID) == "1eaa0824707c8c16bd25145493bf062aecddfeb56c736f6ba6397f3195f33c9f" {
+		fmt.Print(string(colorCyan), "\nNETWORK: Connecting to the Hypha Test Network")
+	}
+	fmt.Println(string(colorReset))
 }
 
 func recurseViperCommands(root *cobra.Command, segments []string) {

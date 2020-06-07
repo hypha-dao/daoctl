@@ -10,3 +10,4 @@ Treasury:
   BtcAddress: 35hfgfaUouzYixTUDV6CFqMiTSZcuNtTf9
 TelosDecideContract: trailservice
 DAOUser: johnnyhypha1
+HyperionEndpoint: https://testnet.telosusa.io/v2

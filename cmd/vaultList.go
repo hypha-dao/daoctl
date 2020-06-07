@@ -9,10 +9,10 @@ import (
 // vaultListCmd represents the list command
 var vaultListCmd = &cobra.Command{
 	Use:   "list",
-	Short: "List public keys inside an eosc vault.",
-	Long: `List public keys inside an eosc vault.
+	Short: "List public keys inside an the vault.",
+	Long: `List public keys inside an the vault.
 
-The wallet file contains a lits of public keys for easy reference, but
+The wallet file contains a list of public keys for easy reference, but
 you cannot trust that these public keys have their counterpart in the
 wallet, unless you check with the "list" command.
 `,
