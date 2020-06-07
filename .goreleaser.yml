@@ -20,8 +20,8 @@ snapshot:
   name_template: "{{ .Tag }}-next"
 release:
   github:
-    owner: dappdever
-    name: git@github.com:hypha-dao/daoctl.git
+    owner: hypha-dao
+    name: daoctl
   draft: false
   prerelease: true
 changelog:
