@@ -20,3 +20,5 @@
 ```
 ./daoctl get ballot d4
 ```
+
+With much credit and appreciation to ```eosc``` at https://github.com/eoscanada/eosc
