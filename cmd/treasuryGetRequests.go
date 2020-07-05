@@ -10,7 +10,6 @@ import (
 	"github.com/hypha-dao/daoctl/views"
 
 	"github.com/spf13/cobra"
-	"github.com/spf13/viper"
 )
 
 var treasuryGetRequestsCmd = &cobra.Command{
@@ -18,10 +17,9 @@ var treasuryGetRequestsCmd = &cobra.Command{
 	Short: "retrieve list of redemption requests",
 	// Args:  cobra.RangeArgs(1, 2),
 	Run: func(cmd *cobra.Command, args []string) {
-		api := eos.New(viper.GetString("EosioEndpoint"))
 		ctx := context.Background()
 
-		printRequestsTable(ctx, api, "HUSD Redemption Requests")
+		printRequestsTable(ctx, getAPI(), "HUSD Redemption Requests")
 	},
 }
 
