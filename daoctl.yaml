@@ -11,3 +11,6 @@ Treasury:
 TelosDecideContract: trailservice
 DAOUser: hyphanewyork
 HyperionEndpoint: https://mainnet.telosusa.io/v2
+BallotPrefix: hypha1.....
+RewardTokenSymbol: HYPHA
+VoteTokenSymbol: HVOICE

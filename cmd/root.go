@@ -69,6 +69,8 @@ func init() {
 	RootCmd.PersistentFlags().BoolP("include-proposals", "", false, "include a table with proposals in the output")
 	RootCmd.PersistentFlags().BoolP("active", "a", true, "show active objects")
 	RootCmd.PersistentFlags().BoolP("failed-proposals", "", false, "include a table with failed proposals")
+	RootCmd.PersistentFlags().StringP("file", "f", "", "filename")
+
 }
 
 // initConfig reads in config file and ENV variables if set.

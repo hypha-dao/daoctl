@@ -1,7 +1,7 @@
 package util
 
 import (
-  "math"
+	"math"
 	"math/big"
 
 	"github.com/eoscanada/eos-go"
@@ -18,12 +18,30 @@ func FormatAsset(a *eos.Asset, precision int) string {
 	return a.String()
 }
 
+// AssetMult multiples the asset by the coeffecient
 func AssetMult(a eos.Asset, coeff *big.Float) eos.Asset {
-  //var amount big.Int
-  var f big.Float
-  f.SetInt(big.NewInt(int64(a.Amount)))
-  amount, _ := f.Mul(&f, coeff).Int64() // big.NewInt(int64(a.Amount)).Mul(coeff)
-  newAmount := eos.Int64(amount)
-  // intObject := big.NewInt(amount)
-  return eos.Asset{Amount: newAmount, Symbol: a.Symbol}
+	//var amount big.Int
+	var f big.Float
+	f.SetInt(big.NewInt(int64(a.Amount)))
+	amount, _ := f.Mul(&f, coeff).Int64() // big.NewInt(int64(a.Amount)).Mul(coeff)
+	newAmount := eos.Int64(amount)
+	// intObject := big.NewInt(amount)
+	return eos.Asset{Amount: newAmount, Symbol: a.Symbol}
+}
+
+// Snip returns a shortened version of the notes map
+func Snip(notes *map[string]string) string {
+
+	charsToShow := 45
+	suffix := "... <snip>"
+	longValue := ""
+	for k, v := range *notes {
+		longValue = longValue + "{key:" + k + ",value:" + v + "}"
+	}
+
+	if len(longValue) < charsToShow {
+		charsToShow = len(longValue)
+		suffix = ""
+	}
+	return longValue[:charsToShow] + suffix
 }

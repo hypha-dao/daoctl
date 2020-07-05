@@ -15,8 +15,8 @@ import (
 
 var createCmd = &cobra.Command{
 	Use:   "create -f [filename]",
-	Short: "create an object based on the JSON file",
-	Long:  "create an object based on the JSON file",
+	Short: "create an object (e.g. proposal) based on the JSON file",
+	Long:  "create an object (e.g. proposal) based on the JSON file",
 	Run: func(cmd *cobra.Command, args []string) {
 		ctx := context.Background()
 
@@ -41,7 +41,7 @@ var createCmd = &cobra.Command{
 		errorCheck("unable to retrieve action binary from JSON via API", err)
 
 		actions := []*eos.Action{
-			&eos.Action{
+			{
 				Account: contract,
 				Name:    action,
 				Authorization: []eos.PermissionLevel{

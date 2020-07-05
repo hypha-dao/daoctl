@@ -3,11 +3,12 @@ package cmd
 import (
 	"context"
 	"fmt"
-	"github.com/hypha-dao/daoctl/util"
 	"strconv"
 
-	eos "github.com/eoscanada/eos-go"
 	"github.com/hypha-dao/daoctl/models"
+	"github.com/hypha-dao/daoctl/util"
+
+	eos "github.com/eoscanada/eos-go"
 	"github.com/hypha-dao/daoctl/views"
 	"github.com/ryanuber/columnize"
 	"github.com/spf13/cobra"
@@ -34,18 +35,18 @@ var getTreasuryCmd = &cobra.Command{
 		// config := models.LoadTreasConfig(context.Background(), api)
 		// fmt.Println(config)
 
-		treasury := models.LoadTreasury(api, viper.GetString("Treasury.TokenContract"), viper.GetString("Treasury.Symbol"))
+		treasury := models.Load(api, viper.GetString("Treasury.Contract"), viper.GetString("Treasury.TokenContract"), viper.GetString("Treasury.Symbol"))
 
 		fmt.Println()
 		treasuryConfig := []string{
 			fmt.Sprintf("Redemption Symbol|%v", *treasury.Config.RedemptionSymbol),
 			fmt.Sprintf("Redemption Token Contract|%v", *treasury.Config.RedemptionTokenContract),
 			fmt.Sprintf("Approval Threshold|%v", *treasury.Config.Threshold),
-			fmt.Sprintf("Last Updated|%v", treasury.Config.UpdatedDate.Time.Format("2006 Jan 02 15:04:05")),
+			fmt.Sprintf("Last Updated|%v", treasury.Config.RawConfig.UpdatedDate.Time.Format("2006 Jan 02 15:04:05")),
 		}
 		fmt.Println(columnize.SimpleFormat(treasuryConfig))
 
-		treasuryTable, circulatingBalance := views.TreasuryTable(treasury.TreasuryHolders)
+		treasuryTable, circulatingBalance := views.TreasuryTable(treasury.Members)
 		fmt.Println("\n" + treasuryTable.String() + "\n\n")
 
 		totalAssets := treasury.EthUSDTBalance.Add(addlBalance)
@@ -55,6 +56,7 @@ var getTreasuryCmd = &cobra.Command{
 		netTreasury := totalAssets.Sub(circulatingBalance)
 		output := []string{
 			fmt.Sprintf("Awaiting burning|%v", util.FormatAsset(&treasury.BankBalance, 2)),
+			fmt.Sprintf("Requested redemptions|%v", util.FormatAsset(&treasury.TotalReqRedemptions, 2)),
 			fmt.Sprintf("Circulating|%v", util.FormatAsset(&circulatingBalance, 2)),
 			fmt.Sprintf("Eth USDT balance|%v", util.FormatAsset(&treasury.EthUSDTBalance, 2)),
 			fmt.Sprintf("Additional balances|%v", util.FormatAsset(&addlBalance, 2)),

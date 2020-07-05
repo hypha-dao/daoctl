@@ -13,23 +13,23 @@ import (
 	"github.com/spf13/viper"
 )
 
-// TreasuryHolder ...
-type TreasuryHolder struct {
-	TokenHolder eos.Name
-	Balance     eos.Asset
+// Balance ...
+type Balance struct {
+	Balance              eos.Asset
+	RequestedRedemptions eos.Asset
 }
 
-// TreasuryConfig struct
-type TreasuryConfig struct {
+// Config struct
+type Config struct {
 	RedemptionSymbol        *string
 	DAOContract             *eos.Name
 	RedemptionTokenContract *eos.Name
 	Paused                  *uint64
 	Threshold               *uint64
-	RawTreasuryConfig
+	RawConfig               rawConfig
 }
 
-type RawTreasuryConfig struct {
+type rawConfig struct {
 	RedemptionSymbol string             `json:"redemption_symbol"`
 	Names            []NameKV           `json:"names"`
 	Strings          []StringKV         `json:"strings"`
@@ -40,11 +40,14 @@ type RawTreasuryConfig struct {
 
 // Treasury ...
 type Treasury struct {
-	Config          TreasuryConfig
-	TreasuryHolders []TreasuryHolder
-	BankBalance     eos.Asset
-	EthUSDTBalance  eos.Asset
-	BtcBalance      eos.Asset
+	Config              Config
+	Members             map[eos.Name]Balance
+	RedemptionRequests  []RedemptionRequest
+	TotalReqRedemptions eos.Asset
+	Circulating         eos.Asset
+	BankBalance         eos.Asset
+	EthUSDTBalance      eos.Asset
+	BtcBalance          eos.Asset
 }
 
 func errorCheck(prefix string, err error) {
@@ -61,23 +64,24 @@ func toAccount(in, field string) eos.AccountName {
 	return acct
 }
 
-// LoadTreasury ...
-func LoadTreasury(api *eos.API, tokenContract, symbol string) Treasury {
+// Load ...
+func Load(api *eos.API, treasuryContract, tokenContract, symbol string) Treasury {
 	var treasury Treasury
-	treasury.loadConfig(api)
-	treasury.loadHolders(api, tokenContract, symbol)
+	treasury.loadConfig(api, treasuryContract)
+	// treasury.Members = make(map[eos.Name]TreasuryBalance)
+	treasury.loadMembers(api, treasuryContract, tokenContract, symbol)
 	treasury.loadEthUSDT(viper.GetString("Treasury.EthUSDTContract"), viper.GetString("Treasury.EthUSDTAddress"))
 	treasury.loadBtcBalance("")
 	return treasury
 }
 
-func (t *Treasury) loadConfig(api *eos.API) {
+func (t *Treasury) loadConfig(api *eos.API, treasuryContract string) {
 
 	// LoadTreasConfig loads the treasury configuration from the smart contract
-	var rto []RawTreasuryConfig
+	var rto []rawConfig
 	var request eos.GetTableRowsRequest
-	request.Code = viper.GetString("Treasury.Contract")
-	request.Scope = viper.GetString("Treasury.Contract")
+	request.Code = treasuryContract
+	request.Scope = treasuryContract
 	request.Table = "config"
 	request.Limit = 1
 	request.JSON = true
@@ -101,11 +105,41 @@ func (t *Treasury) loadConfig(api *eos.API) {
 		}
 	}
 
-	t.Config.RawTreasuryConfig = rto[0] // keep the raw object around
+	t.Config.RawConfig = rto[0] // keep the raw object around
 	t.Config.RedemptionSymbol = &rto[0].RedemptionSymbol
 }
 
-func (t *Treasury) loadHolders(api *eos.API, tokenContract, symbol string) {
+func (t *Treasury) getRedemptionRequests(api *eos.API, treasuryContract string) map[eos.Name]eos.Asset {
+	var request eos.GetTableRowsRequest
+	request.Code = treasuryContract
+	request.Scope = treasuryContract
+	request.Table = "redemptions"
+	request.Limit = 500 // TODO: max redemptions?
+	request.JSON = true
+
+	var rr []RedemptionRequest
+	rrResponse, err := api.GetTableRows(context.Background(), request)
+	if err != nil {
+		panic(err)
+	}
+	rrResponse.JSONToStructs(&rr)
+	redemptionMap := make(map[eos.Name]eos.Asset)
+
+	t.TotalReqRedemptions, _ = eos.NewAssetFromString("0.00 HUSD")
+	for _, element := range rr {
+		_, exists := redemptionMap[element.Requestor]
+		if exists {
+			redemptionMap[element.Requestor] = redemptionMap[element.Requestor].Add(element.Requested)
+		} else {
+			redemptionMap[element.Requestor] = element.Requested
+		}
+
+		t.TotalReqRedemptions = t.TotalReqRedemptions.Add(element.Requested)
+	}
+	return redemptionMap
+}
+
+func (t *Treasury) getHolders(api *eos.API, treasuryContract, tokenContract, symbol string) map[eos.Name]eos.Asset {
 	var request eos.GetTableByScopeRequest
 	request.Code = tokenContract
 	request.Table = "accounts"
@@ -116,28 +150,50 @@ func (t *Treasury) loadHolders(api *eos.API, tokenContract, symbol string) {
 	var scopes []Scope
 	json.Unmarshal(response.Rows, &scopes)
 
-	var treasuryHolder []TreasuryHolder
-	treasuryHolder = make([]TreasuryHolder, len(scopes))
+	holders := make(map[eos.Name]eos.Asset)
+	t.Circulating, _ = eos.NewAssetFromString("0.00 HUSD")
 
-	for index, scope := range scopes {
+	for _, scope := range scopes {
 
 		tokenHolder := eos.AccountName(scope.Scope)
 		balances, err := api.GetCurrencyBalance(context.Background(), tokenHolder, symbol, eos.AN(tokenContract))
-		errorCheck("treasury", err)
+		errorCheck("getting currency balance", err)
+
 		if len(balances) > 0 {
-			if string(scope.Scope) == viper.GetString("Treasury.Contract") {
+			if string(scope.Scope) == treasuryContract {
 				t.BankBalance = balances[0]
 			} else {
-				treasuryHolder[index].TokenHolder = scope.Scope
-				treasuryHolder[index].Balance = balances[0]
+				holders[scope.Scope] = balances[0]
 			}
 		}
+		t.Circulating = t.Circulating.Add(balances[0])
 	}
-	t.TreasuryHolders = treasuryHolder
+	return holders
+}
+
+func (t *Treasury) loadMembers(api *eos.API, treasuryContract, tokenContract, symbol string) {
+	holderBalances := t.getHolders(api, treasuryContract, tokenContract, symbol)
+	rrMap := t.getRedemptionRequests(api, treasuryContract)
+	zeroHusd, _ := eos.NewAssetFromString("0.00 HUSD")
+
+	t.Members = make(map[eos.Name]Balance)
+	for holder, tokenBalance := range holderBalances {
+		t.Members[holder] = Balance{Balance: tokenBalance, RequestedRedemptions: zeroHusd}
+	}
+
+	for Requestor, requestedAmount := range rrMap {
+		_, exists := t.Members[Requestor]
+		if !exists {
+			t.Members[Requestor] = Balance{Balance: zeroHusd, RequestedRedemptions: requestedAmount}
+		} else {
+			t.Members[Requestor] = Balance{Balance: t.Members[Requestor].Balance, RequestedRedemptions: requestedAmount}
+		}
+	}
 }
 
 func (t *Treasury) loadEthUSDT(usdtTokenAddress, treasuryWallet string) {
 	requestString := "https://api.tokenbalance.com/balance/" + viper.GetString("Treasury.EthUSDTContract") + "/" + viper.GetString("Treasury.EthUSDTAddress")
+	fmt.Println(requestString)
 	resp, err := http.Get(requestString)
 	if err != nil {
 		fmt.Println("Unable to retrieve ETH USDT balance.")
@@ -157,7 +213,9 @@ func (t *Treasury) loadEthUSDT(usdtTokenAddress, treasuryWallet string) {
 	}
 	t.EthUSDTBalance, err = eos.NewAssetFromString(string(body) + " HUSD")
 	if err != nil {
-		fmt.Println("Unable to format ETH USDT balance as an asset type: " + string(body) + " HUSD")
+		fmt.Println("Unable to format ETH USDT balance as an asset type: " + string(body) + " HUSD.  Assuming 0.00 HUSD")
+		t.EthUSDTBalance, _ = eos.NewAssetFromString("0.00 HUSD")
+		return
 	}
 }
 

@@ -15,12 +15,12 @@ import (
 	"github.com/spf13/cobra"
 )
 
-const charset = "abcdefghijklmnopqrstuvwxyz" +
-	"12345"
-
+const charset = "abcdefghijklmnopqrstuvwxyz" + "12345"
 const creator = "eosio"
-const defaultKey = ""
-const repoHome = "/Users/max/dev/hypha/eosio-contracts"
+const defaultKey = "5KQwrPbwdL6PhXujxW37FSSQZ1JiwsST4cqQzDeyXtP79zkvFD3"
+const repoHome = "/Users/max/dev/gba/eosio-contracts"
+const decideHome = "/Users/max/dev/telosnetwork/telos-decide/build/contracts"
+const testingEndpoint = "http://localhost:8888"
 
 var testingKey ecc.PublicKey
 
@@ -244,11 +244,11 @@ var testCmd = &cobra.Command{
 	Short: "Test the DAO software",
 
 	Run: func(cmd *cobra.Command, args []string) {
-		api := eos.New("http://localhost:8888")
+		api := eos.New(testingEndpoint)
 		// api.Debug = true
 		ctx := context.Background()
-		wasmFile := repoHome + "/hyphadao/hyphadao.wasm"
-		abiFile := repoHome + "/hyphadao/hyphadao.abi"
+		wasmFile := repoHome + "/dao/dao.wasm"
+		abiFile := repoHome + "/dao/dao.abi"
 
 		keyBag := &eos.KeyBag{}
 		err := keyBag.ImportPrivateKey(ctx, defaultKey)
@@ -269,14 +269,14 @@ var testCmd = &cobra.Command{
 		}
 		log.Println("Set contract: ", trxID)
 
-		trxID, err = setConfig(ctx, api, daoContract, "test-payloads/config1.json")
+		trxID, err = setConfig(ctx, api, daoContract, repoHome+"/scripts/daoctl/gba-config.json")
 		if err != nil {
 			log.Panicf("cannot set config: %s", err)
 		}
 		log.Println("Set config: ", trxID)
 
 		telosDecide := accounts[1]
-		trxID, err = setContract(ctx, api, telosDecide, "/Users/max/dev/decide/decide/decide.wasm", "/Users/max/dev/decide/decide/decide.abi")
+		trxID, err = setContract(ctx, api, telosDecide, decideHome+"/decide/decide.wasm", decideHome+"/decide/decide.abi")
 		if err != nil {
 			log.Panicf("cannot set contract: %s", err)
 		}

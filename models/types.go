@@ -118,6 +118,15 @@ type DAOObject struct {
 	UpdatedDate  eos.BlockTimestamp            `json:"updated_date"`
 }
 
+// ToMap converts an array of kv pairs from an EOSIO table to a native Go map
+func ToMap(strings []StringKV) *map[string]string {
+	stringMap := make(map[string]string, len(strings))
+	for _, element := range strings {
+		stringMap[element.Key] = element.Value
+	}
+	return &stringMap
+}
+
 // ToDAOObject Converts a very generic Object to one of type DAO Object
 func ToDAOObject(objs Object) DAOObject {
 

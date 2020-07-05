@@ -1,14 +1,14 @@
 package cmd
 
 import (
-  "context"
-  "fmt"
-  "strconv"
+	"context"
+	"fmt"
+	"strconv"
 
-  eos "github.com/eoscanada/eos-go"
-  "github.com/hypha-dao/daoctl/models"
-  "github.com/spf13/cobra"
-  "github.com/spf13/viper"
+	eos "github.com/eoscanada/eos-go"
+	"github.com/hypha-dao/daoctl/models"
+	"github.com/spf13/cobra"
+	"github.com/spf13/viper"
 )
 
 var getRoleCmd = &cobra.Command{
@@ -23,13 +23,14 @@ var getRoleCmd = &cobra.Command{
 
 		roleID, err := strconv.ParseUint(args[0], 10, 64)
 		if err != nil {
-		  fmt.Println("Parse error: Role id must be a positive integer (uint64)")
-		  return;
-    }
+			fmt.Println("Parse error: Role id must be a positive integer (uint64)")
+			return
+		}
 		periods := models.LoadPeriods(api)
 		role := models.NewRoleByID(ctx, api, periods, roleID)
 
-		fmt.Println("\n\nRole: ", role.Title, "\n")
+		fmt.Println("\n\nRole: ", role.Title)
+		fmt.Println()
 		fmt.Println(role.String())
 		fmt.Println()
 	},

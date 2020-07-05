@@ -28,7 +28,7 @@ var getBallotCmd = &cobra.Command{
 		ctx := context.Background()
 		ac := accounting.NewAccounting("", 0, ",", ".", "%s %v", "%s (%v)", "%s --") // TODO: make this configurable
 
-		ballotName := eos.Name("hypha1....." + args[0])
+		ballotName := eos.Name(viper.GetString("BallotPrefix") + args[0])
 
 		ballot, err := models.NewBallot(ctx, api, ballotName)
 		if err != nil {

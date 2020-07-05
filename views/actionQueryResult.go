@@ -33,11 +33,11 @@ func ActionQueryResultTable(qrActions []models.QrAction) *simpletable.Table {
 		timeSince := time.Since(qrActions[index].Timestamp)
 		timeSinceStr := timeSince.String()
 		if timeSince.Hours() < 1 {
-			timeSinceStr = strconv.Itoa(RoundTime(timeSince.Seconds()/60)) + " mins"
+			timeSinceStr = strconv.Itoa(roundTime(timeSince.Seconds()/60)) + " mins"
 		} else if timeSince.Hours() < 72 {
-			timeSinceStr = strconv.Itoa(RoundTime(timeSince.Seconds()/3600)) + " hours"
+			timeSinceStr = strconv.Itoa(roundTime(timeSince.Seconds()/3600)) + " hours"
 		} else {
-			timeSinceStr = strconv.Itoa(RoundTime(timeSince.Seconds()/86400)) + " days"
+			timeSinceStr = strconv.Itoa(roundTime(timeSince.Seconds()/86400)) + " days"
 		}
 
 		r := []*simpletable.Cell{
@@ -53,7 +53,7 @@ func ActionQueryResultTable(qrActions []models.QrAction) *simpletable.Table {
 	return table
 }
 
-func RoundTime(input float64) int {
+func roundTime(input float64) int {
 	var result float64
 
 	if input < 0 {
