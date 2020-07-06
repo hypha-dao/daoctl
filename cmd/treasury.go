@@ -12,5 +12,5 @@ var treasuryCmd = &cobra.Command{
 
 func init() {
 	RootCmd.AddCommand(treasuryCmd)
-	treasuryCmd.Flags().StringP("memo", "m", "", "memo to be added to the payment record on chain")
+	treasuryCmd.PersistentFlags().StringP("memo", "m", "", "memo to be added to the payment record on chain")
 }

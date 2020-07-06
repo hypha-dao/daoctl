@@ -2,6 +2,8 @@ package cmd
 
 import (
 	"context"
+	"encoding/json"
+	"fmt"
 	"strconv"
 
 	"github.com/eoscanada/eos-go"
@@ -19,7 +21,7 @@ type attestActionParam struct {
 }
 
 var treasuryAttestPaymentCmd = &cobra.Command{
-	Use:   "attest [paymentID] [redemptionID] [amount] [-m memo]",
+	Use:   "attest [paymentID] [redemptionID] [amount]",
 	Short: "treasurer only; attests to the validity/truth of a payment created by another treasurer",
 	Args:  cobra.ExactArgs(3),
 	Run: func(cmd *cobra.Command, args []string) {
@@ -47,9 +49,10 @@ var treasuryAttestPaymentCmd = &cobra.Command{
 		}
 
 		action := eos.Action{
-			Account: eos.AN(viper.GetString("TreasuryContract")),
+			Account: eos.AN(viper.GetString("Treasury.Contract")),
 			Name:    toActionName("attestpaymnt", "new payment action name"),
 			Authorization: []eos.PermissionLevel{
+				{Actor: eos.AN(viper.GetString("Treasury.Contract")), Permission: eos.PN("singletreas")},
 				{Actor: eos.AN(viper.GetString("DAOUser")), Permission: eos.PN("active")},
 			},
 			ActionData: eos.NewActionData(attestActionParam{
@@ -60,9 +63,10 @@ var treasuryAttestPaymentCmd = &cobra.Command{
 				Notes:        notes,
 			}),
 		}
+		act, _ := json.MarshalIndent(action, "", " ")
+		fmt.Println(string(act))
 
 		pushEOSCActions(ctx, getAPI(), &action)
-
 	},
 }
 
