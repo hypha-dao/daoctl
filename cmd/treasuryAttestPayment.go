@@ -52,7 +52,6 @@ var treasuryAttestPaymentCmd = &cobra.Command{
 			Account: eos.AN(viper.GetString("Treasury.Contract")),
 			Name:    toActionName("attestpaymnt", "new payment action name"),
 			Authorization: []eos.PermissionLevel{
-				{Actor: eos.AN(viper.GetString("Treasury.Contract")), Permission: eos.PN("singletreas")},
 				{Actor: eos.AN(viper.GetString("DAOUser")), Permission: eos.PN("active")},
 			},
 			ActionData: eos.NewActionData(attestActionParam{

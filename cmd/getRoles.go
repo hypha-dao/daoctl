@@ -20,7 +20,7 @@ var getRolesCmd = &cobra.Command{
 		api := eos.New(viper.GetString("EosioEndpoint"))
 		ctx := context.Background()
 
-		periods := models.LoadPeriods(api)
+		periods := models.LoadPeriods(api, true, true)
 
 		if viper.GetBool("global-active") == true {
 			printRolesTable(ctx, api, periods, "Current Roles", "role")

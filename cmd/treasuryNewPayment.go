@@ -18,7 +18,7 @@ type paymentActionParam struct {
 }
 
 var treasuryNewPaymentCmd = &cobra.Command{
-	Use:   "newpayment [redemptionID] [amount] [-n network] [-x trx-id] [-m memo]",
+	Use:   "newpayment [redemptionID] [amount] [-n network] [-x trxid] [-m memo]",
 	Short: "treasurer only; creates a payment record against a specific redemption request",
 	Args:  cobra.ExactArgs(2),
 	Run: func(cmd *cobra.Command, args []string) {
@@ -35,12 +35,12 @@ var treasuryNewPaymentCmd = &cobra.Command{
 		}
 
 		notes := make(map[string]string)
-		if len(viper.GetString("create-payment-cmd-network")) > 0 {
-			notes["network"] = viper.GetString("create-payment-cmd-network")
+		if len(viper.GetString("treasury-newpayment-cmd-network")) > 0 {
+			notes["network"] = viper.GetString("treasury-newpayment-cmd-network")
 		}
 
-		if len(viper.GetString("create-payment-cmd-trx-id")) > 0 {
-			notes["trx-id"] = viper.GetString("create-payment-cmd-trx-id")
+		if len(viper.GetString("treasury-newpayment-cmd-trxid")) > 0 {
+			notes["trxid"] = viper.GetString("treasury-newpayment-cmd-trxid")
 		}
 
 		if len(viper.GetString("treasury-cmd-memo")) > 0 {
@@ -48,7 +48,7 @@ var treasuryNewPaymentCmd = &cobra.Command{
 		}
 
 		action := eos.Action{
-			Account: eos.AN(viper.GetString("TreasuryContract")),
+			Account: eos.AN(viper.GetString("Treasury.Contract")),
 			Name:    toActionName("newpayment", "new payment action name"),
 			Authorization: []eos.PermissionLevel{
 				{Actor: eos.AN(viper.GetString("DAOUser")), Permission: eos.PN("active")},
@@ -69,6 +69,6 @@ var treasuryNewPaymentCmd = &cobra.Command{
 func init() {
 	treasuryCmd.AddCommand(treasuryNewPaymentCmd)
 	treasuryNewPaymentCmd.Flags().StringP("network", "n", "", "network and token used to complete the payment (e.g. BTC, ETH_USDT)")
-	treasuryNewPaymentCmd.Flags().StringP("trx-id", "x", "", "transaction ID on the network used to complete the payment")
+	treasuryNewPaymentCmd.Flags().StringP("trxid", "x", "", "transaction ID on the network used to complete the payment")
 	// treasuryCreatePaymentCmd.Flags().StringP("memo", "m", "", "memo to be added to the payment record on chain")
 }

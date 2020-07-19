@@ -2,6 +2,7 @@ package models
 
 import (
 	"context"
+	"fmt"
 
 	eos "github.com/eoscanada/eos-go"
 )
@@ -50,16 +51,31 @@ func NewAssignment(daoObj DAOObject, roles []Role, periods []Period) Assignment 
 }
 
 // Assignments provides the set of active approved assignments
-func Assignments(ctx context.Context, api *eos.API, roles []Role, periods []Period, scope string) []Assignment {
+func Assignments(ctx context.Context, api *eos.API, roles []Role, periods []Period, scope string, includeExpired bool) ([]Assignment, error) {
 	objects := LoadObjects(ctx, api, scope)
+	var currentPeriod int64
+	var err error
+
+	currentPeriod = -1
+	if !includeExpired {
+		currentPeriod, err = CurrentPeriod(&periods)
+		if err != nil {
+			return nil, fmt.Errorf("cannot determine current period in order to include expired: %w", err)
+		}
+	}
+
 	var assignments []Assignment
 	for index := range objects {
 		daoObject := ToDAOObject(objects[index])
 		if daoObject.Names["type"] == "assignment" {
+			if !includeExpired && daoObject.Ints["end_period"] < uint64(currentPeriod) {
+				continue
+			}
 			assignment := NewAssignment(daoObject, roles, periods)
 			assignment.Approved = scopeApprovals(scope)
 			assignments = append(assignments, assignment)
 		}
 	}
-	return assignments
+
+	return assignments, nil
 }

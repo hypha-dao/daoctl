@@ -26,7 +26,7 @@ var getRoleCmd = &cobra.Command{
 			fmt.Println("Parse error: Role id must be a positive integer (uint64)")
 			return
 		}
-		periods := models.LoadPeriods(api)
+		periods := models.LoadPeriods(api, true, true)
 		role := models.NewRoleByID(ctx, api, periods, roleID)
 
 		fmt.Println("\n\nRole: ", role.Title)

@@ -64,4 +64,16 @@ HyperionEndpoint: https://testnet.telosusa.io/v2
 ./daoctl get ballot d4
 ```
 
-With much credit and appreciation to ```eosc``` at https://github.com/eoscanada/eosc
+## Treasury Commands
+
+Submitting a new payment against a Redemption Request 
+```bash
+# in the below command, the redemption_id is 6
+./daoctl --vault-file hyphanewyork.json treasury newpayment 6 "3500.00 HUSD" --network BTC --trxid b475e94c6a86dd18cce0ab7a1dfc9d0f94e20baf6c91317c14ce669da4111e1c --memo "just a memo field for any additional context"
+```
+
+Attesting to an existing payment. Treasurers have the responsibility of reviewing and validating transaction payments. To attest that a posted payment is true and accurate, use the ```attest``` command.
+```bash
+# in the below example, the paymentID is 4 and the requestID is 6
+./daoctl --vault-file hyphanewyork.json treasury attest 4 6 "3500.00 HUSD" 
+```
