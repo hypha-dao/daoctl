@@ -9,5 +9,8 @@ Treasury:
   EthUSDTAddress: 0xC20f453a4B4995CA032570f212988F4978B35dDd
   BtcAddress: 35hfgfaUouzYixTUDV6CFqMiTSZcuNtTf9
 TelosDecideContract: trailservice
-DAOUser: treasurermmm
+DAOUser: johnnyhypha1
 HyperionEndpoint: https://testnet.telosusa.io/v2
+BallotPrefix: hypha1.....
+RewardTokenSymbol: HYPHA
+VoteTokenSymbol: HVOICE
