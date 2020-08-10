@@ -49,7 +49,7 @@ dockers:
     - "dsmaxds/daoctl:latest"
     dockerfile: Dockerfile
     extra_files:
-    - config.yml
+    - daoctl.yml
 # signs:
 #   artifacts: checksum
 #   cmd: gpg2
