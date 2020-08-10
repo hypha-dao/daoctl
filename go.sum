@@ -113,8 +113,8 @@ github.com/envoyproxy/go-control-plane v0.9.1-0.20191026205805-5f8ba28d4473/go.m
 github.com/envoyproxy/go-control-plane v0.9.4/go.mod h1:6rpuAdCZL397s3pYoYcLgu1mIlRU8Am5FuJP05cCM98=
 github.com/envoyproxy/protoc-gen-validate v0.1.0/go.mod h1:iSmxcyjqTsJpI2R4NaDN7+kN2VEUnK/pcBlmesArF7c=
 github.com/eoscanada/eos-go v0.9.1-0.20200227221642-1b19518201a1/go.mod h1:6RuJFiRU1figWZ39M33o2cERU2MdL6VllElYLHTZNeo=
-github.com/eoscanada/eos-go v0.9.1-0.20200507191809-24c0eb71e125 h1:etm8+xclE86Xot2YcEwFpa8EOmy0VsYL6CO5OluCgFg=
-github.com/eoscanada/eos-go v0.9.1-0.20200507191809-24c0eb71e125/go.mod h1:exxz2Fyjqx23FIYF1QlhhhggYZxcbZMGp2H/4h7I34Y=
+github.com/eoscanada/eos-go v0.9.1-0.20200805141443-a9d5402a7bc5 h1:5DSf1Fao5UAoX7RaWD/c08JJXjBygQYi549IMVBbFpo=
+github.com/eoscanada/eos-go v0.9.1-0.20200805141443-a9d5402a7bc5/go.mod h1:exxz2Fyjqx23FIYF1QlhhhggYZxcbZMGp2H/4h7I34Y=
 github.com/eoscanada/eosc v1.4.0 h1:wqlRNjrKFwX9Y30sgJfgdNxLol2WuEstYP30wr6jyoc=
 github.com/eoscanada/eosc v1.4.0/go.mod h1:0I+yYzRUTbIMgQsBjBYyNdE5idtbUMMkUQM4fN5A3P4=
 github.com/ethereum/go-ethereum v1.9.9 h1:jnoBvjH8aMH++iH14XmiJdAsnRcmZUM+B5fsnEZBVE0=

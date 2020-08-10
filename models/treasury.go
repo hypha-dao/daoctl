@@ -115,6 +115,9 @@ func (t *Treasury) getRedemptionRequests(api *eos.API, treasuryContract string) 
 	request.Scope = treasuryContract
 	request.Table = "redemptions"
 	request.Limit = 500 // TODO: max redemptions?
+	request.Index = "3"
+	request.KeyType = "i64"
+	request.Reverse = true
 	request.JSON = true
 
 	var rr []RedemptionRequest
@@ -127,6 +130,10 @@ func (t *Treasury) getRedemptionRequests(api *eos.API, treasuryContract string) 
 
 	t.TotalReqRedemptions, _ = eos.NewAssetFromString("0.00 HUSD")
 	for _, element := range rr {
+		if element.Paid.Amount >= element.Requested.Amount {
+			return redemptionMap
+		}
+
 		_, exists := redemptionMap[element.Requestor]
 		if exists {
 			redemptionMap[element.Requestor] = redemptionMap[element.Requestor].Add(element.Requested)

@@ -6,7 +6,7 @@ require (
 	cloud.google.com/go v0.57.0 // indirect
 	github.com/alexeyco/simpletable v0.0.0-20200203113705-55bd62a5b8df
 	github.com/bronze1man/go-yaml2json v0.0.0-20150129175009-f6f64b738964
-	github.com/eoscanada/eos-go v0.9.1-0.20200507191809-24c0eb71e125
+	github.com/eoscanada/eos-go v0.9.1-0.20200805141443-a9d5402a7bc5
 	github.com/eoscanada/eosc v1.4.0
 	github.com/go-echarts/go-echarts v1.0.0
 	github.com/leekchan/accounting v0.0.0-20191218023648-17a4ce5f94d4

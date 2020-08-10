@@ -27,7 +27,7 @@ type Payout struct {
 }
 
 // NewPayout converts a generic DAO Object to a typed Payout
-func NewPayout(daoObj DAOObject, periods []Period) Payout {
+func NewPayout(daoObj Document, periods []Period) Payout {
 	var a Payout
 	a.ID = daoObj.ID
 	a.Receiver = daoObj.Names["recipient"]
@@ -76,12 +76,12 @@ func Payouts(ctx context.Context, api *eos.API, periods []Period, scope string) 
 	objects := LoadObjects(ctx, api, scope)
 	var payouts []Payout
 	for index := range objects {
-    daoObject := ToDAOObject(objects[index])
-    if daoObject.Names["type"] == "payout" {
-      payout := NewPayout(daoObject, periods)
-      payout.Approved = scopeApprovals(scope)
-      payouts = append(payouts, payout)
-    }
+		daoObject := ToDocument(objects[index])
+		if daoObject.Names["type"] == "payout" {
+			payout := NewPayout(daoObject, periods)
+			payout.Approved = scopeApprovals(scope)
+			payouts = append(payouts, payout)
+		}
 	}
 	return payouts
 }

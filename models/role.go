@@ -1,14 +1,15 @@
 package models
 
 import (
-  "context"
-  "fmt"
-  "github.com/hypha-dao/daoctl/util"
-  "github.com/ryanuber/columnize"
-  "math/big"
-  "strconv"
+	"context"
+	"fmt"
+	"math/big"
+	"strconv"
 
-  "github.com/eoscanada/eos-go"
+	"github.com/hypha-dao/daoctl/util"
+	"github.com/ryanuber/columnize"
+
+	"github.com/eoscanada/eos-go"
 )
 
 // Role is an approved or proposed role for the DAO
@@ -31,7 +32,7 @@ type Role struct {
 }
 
 func (r *Role) String() string {
-  fteCapCost := util.AssetMult(r.AnnualUSDSalary, big.NewFloat(r.FullTimeCapacity))
+	fteCapCost := util.AssetMult(r.AnnualUSDSalary, big.NewFloat(r.FullTimeCapacity))
 	output := []string{
 		fmt.Sprintf("Role ID|%v", strconv.Itoa(int(r.ID))),
 		fmt.Sprintf("Prior ID|%v", strconv.Itoa(int(r.PriorID))),
@@ -53,7 +54,7 @@ func (r *Role) String() string {
 }
 
 // NewRole creates a new Role instance based on the DAOObject
-func NewRole(daoObj DAOObject, periods []Period) Role {
+func NewRole(daoObj Document, periods []Period) Role {
 	var r Role
 	r.ID = daoObj.ID
 	r.PriorID = daoObj.Ints["prior_id"]
@@ -74,7 +75,7 @@ func NewRole(daoObj DAOObject, periods []Period) Role {
 
 // NewRoleByID loads a single role based on its ID number
 func NewRoleByID(ctx context.Context, api *eos.API, periods []Period, ID uint64) Role {
-	daoObj := LoadObject(ctx, api, "role", ID)
+	daoObj := LoadDocument(ctx, api, "role", ID)
 	return NewRole(daoObj, periods)
 }
 
@@ -83,13 +84,12 @@ func Roles(ctx context.Context, api *eos.API, periods []Period, scope string) []
 	objects := LoadObjects(ctx, api, scope)
 	var roles []Role
 	for index := range objects {
-    daoObject := ToDAOObject(objects[index])
-    if daoObject.Names["type"] == "role" {
-      role := NewRole(daoObject, periods)
-      role.Approved = scopeApprovals(scope)
-      roles = append(roles, role)
-    }
+		daoObject := ToDocument(objects[index])
+		if daoObject.Names["type"] == "role" {
+			role := NewRole(daoObject, periods)
+			role.Approved = scopeApprovals(scope)
+			roles = append(roles, role)
+		}
 	}
 	return roles
 }
-

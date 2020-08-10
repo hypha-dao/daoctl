@@ -29,7 +29,7 @@ type Assignment struct {
 }
 
 // NewAssignment converts a generic DAO Object to a typed Assignment
-func NewAssignment(daoObj DAOObject, roles []Role, periods []Period) Assignment {
+func NewAssignment(daoObj Document, roles []Role, periods []Period) Assignment {
 	var a Assignment
 	a.ID = daoObj.ID
 	a.Owner = daoObj.Names["owner"]
@@ -66,7 +66,7 @@ func Assignments(ctx context.Context, api *eos.API, roles []Role, periods []Peri
 
 	var assignments []Assignment
 	for index := range objects {
-		daoObject := ToDAOObject(objects[index])
+		daoObject := ToDocument(objects[index])
 		if daoObject.Names["type"] == "assignment" {
 			if !includeExpired && daoObject.Ints["end_period"] < uint64(currentPeriod) {
 				continue

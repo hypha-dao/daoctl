@@ -36,7 +36,7 @@ func LoadRequestByID(ctx context.Context, api *eos.API, ID uint64) RedemptionReq
 }
 
 // Requests returns a list of all redemption requests
-func Requests(ctx context.Context, api *eos.API) []RedemptionRequest {
+func Requests(ctx context.Context, api *eos.API, all bool) []RedemptionRequest {
 	var requests []RedemptionRequest
 	// var memberAccounts []eos.Name
 	var request eos.GetTableRowsRequest
@@ -45,10 +45,16 @@ func Requests(ctx context.Context, api *eos.API) []RedemptionRequest {
 	request.Table = "redemptions"
 	request.Limit = 1000 // TODO: support dynamic number of members
 	request.JSON = true
+	request.Index = "3"
+	request.KeyType = "i64"
+	request.Reverse = true
 	response, _ := api.GetTableRows(ctx, request)
 	response.JSONToStructs(&requests)
 
 	for index, r := range requests {
+		if !all && r.Paid.Amount >= r.Requested.Amount {
+			return requests[0:index]
+		}
 		requests[index].NotesMap = ToMap(r.NotesRaw)
 	}
 
