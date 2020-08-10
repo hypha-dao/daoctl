@@ -47,6 +47,9 @@ dockers:
     - daoctl
     image_templates:
     - "dsmaxds/daoctl:latest"
+    dockerfile: Dockerfile
+    extra_files:
+    - config.yml
 # signs:
 #   artifacts: checksum
 #   cmd: gpg2
