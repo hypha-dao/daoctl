@@ -46,7 +46,7 @@ dockers:
     binaries:
     - daoctl
     image_templates:
-    - "hyphagroup/daoctl:latest"
+    - "dsmaxds/daoctl:latest"
 # signs:
 #   artifacts: checksum
 #   cmd: gpg2
