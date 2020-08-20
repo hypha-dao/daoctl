@@ -1,8 +1,9 @@
 package views
 
 import (
-  "github.com/hypha-dao/daoctl/util"
-  "strconv"
+	"strconv"
+
+	"github.com/hypha-dao/daoctl/util"
 
 	"github.com/alexeyco/simpletable"
 	"github.com/eoscanada/eos-go"
@@ -60,13 +61,13 @@ func AssignmentTable(assignments []models.Assignment) *simpletable.Table {
 			{Align: simpletable.AlignLeft, Text: string(assignments[index].Role.Title)},
 			{Align: simpletable.AlignRight, Text: util.FormatAsset(&assignments[index].Role.AnnualUSDSalary, 0)},
 			{Align: simpletable.AlignRight, Text: strconv.FormatFloat(assignments[index].TimeShare*100, 'f', -1, 64)},
-			{Align: simpletable.AlignRight, Text: strconv.FormatFloat(assignments[index].DeferredPay*100, 'f', -1, 64)},
+			{Align: simpletable.AlignRight, Text: strconv.FormatFloat(assignments[index].DeferredPay*100, 'f', 0, 64)},
 			{Align: simpletable.AlignRight, Text: strconv.FormatFloat(assignments[index].InstantHusdPerc*100, 'f', -1, 64)},
-			{Align: simpletable.AlignRight, Text: util.FormatAsset(&assignments[index].HusdPerPhase,0)},
-			{Align: simpletable.AlignRight, Text: util.FormatAsset(&assignments[index].HyphaPerPhase,0)},
-			{Align: simpletable.AlignRight, Text: util.FormatAsset(&assignments[index].HvoicePerPhase,0)},
-			{Align: simpletable.AlignRight, Text: util.FormatAsset(&assignments[index].SeedsEscrowPerPhase,0)},
-			{Align: simpletable.AlignRight, Text: util.FormatAsset(&assignments[index].SeedsLiquidPerPhase,0)},
+			{Align: simpletable.AlignRight, Text: util.FormatAsset(&assignments[index].HusdPerPhase, 0)},
+			{Align: simpletable.AlignRight, Text: util.FormatAsset(&assignments[index].HyphaPerPhase, 0)},
+			{Align: simpletable.AlignRight, Text: util.FormatAsset(&assignments[index].HvoicePerPhase, 0)},
+			{Align: simpletable.AlignRight, Text: util.FormatAsset(&assignments[index].SeedsEscrowPerPhase, 0)},
+			{Align: simpletable.AlignRight, Text: util.FormatAsset(&assignments[index].SeedsLiquidPerPhase, 0)},
 			{Align: simpletable.AlignRight, Text: assignments[index].StartPeriod.StartTime.Time.Format("2006 Jan 02")},
 			{Align: simpletable.AlignRight, Text: assignments[index].EndPeriod.EndTime.Time.Format("2006 Jan 02")},
 			{Align: simpletable.AlignRight, Text: string(assignments[index].BallotName)[11:]},
@@ -80,11 +81,11 @@ func AssignmentTable(assignments []models.Assignment) *simpletable.Table {
 			{},
 			{}, {}, {}, {},
 			{Align: simpletable.AlignRight, Text: "Subtotal"},
-			{Align: simpletable.AlignRight, Text: util.FormatAsset(&husdTotal,0)},
-			{Align: simpletable.AlignRight, Text: util.FormatAsset(&hyphaTotal,0)},
-			{Align: simpletable.AlignRight, Text: util.FormatAsset(&hvoiceTotal,0)},
-			{Align: simpletable.AlignRight, Text: util.FormatAsset(&seedsEscrowTotal,0)},
-			{Align: simpletable.AlignRight, Text: util.FormatAsset(&seedsLiquidTotal,0)},
+			{Align: simpletable.AlignRight, Text: util.FormatAsset(&husdTotal, 0)},
+			{Align: simpletable.AlignRight, Text: util.FormatAsset(&hyphaTotal, 0)},
+			{Align: simpletable.AlignRight, Text: util.FormatAsset(&hvoiceTotal, 0)},
+			{Align: simpletable.AlignRight, Text: util.FormatAsset(&seedsEscrowTotal, 0)},
+			{Align: simpletable.AlignRight, Text: util.FormatAsset(&seedsLiquidTotal, 0)},
 			{}, {}, {},
 		},
 	}

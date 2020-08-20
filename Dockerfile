@@ -1,3 +1,3 @@
-FROM scratch
+FROM alpine:latest
 COPY daoctl /
-ENTRYPOINT ["/daoctl", "serve"]
+ENTRYPOINT ["daoctl", "serve"]

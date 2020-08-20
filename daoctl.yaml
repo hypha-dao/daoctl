@@ -6,7 +6,7 @@ Treasury:
   Symbol: HUSD
   Contract: bank.hypha
 TelosDecideContract: trailservice
-DAOUser: 
+DAOUser: hyphanewyork
 HyperionEndpoint: https://mainnet.telosusa.io/v2
 BallotPrefix: hypha1.....
 RewardTokenSymbol: HYPHA

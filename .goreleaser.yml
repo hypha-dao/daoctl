@@ -40,7 +40,7 @@ changelog:
     - '^test:'
 dockers:
   -
-    goos: linux
+    goos: darwin
     goarch: amd64
     goarm: ''
     binaries:

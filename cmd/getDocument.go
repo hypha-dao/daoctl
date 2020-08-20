@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"strconv"
 
@@ -28,10 +29,12 @@ var getDocumentCmd = &cobra.Command{
 		}
 		document := models.LoadDocument(ctx, api, viper.GetString("get-document-cmd-scope"), documentID)
 
+		jsonDoc, _ := json.MarshalIndent(document, "", "  ")
+
 		fmt.Println("\n\nDocument Details")
 		fmt.Println("Scope: ", viper.GetString("get-document-cmd-scope"), "; ID: ", documentID)
 		fmt.Println()
-		fmt.Println(document)
+		fmt.Println(string(jsonDoc))
 		fmt.Println()
 	},
 }

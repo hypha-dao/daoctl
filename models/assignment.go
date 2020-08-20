@@ -28,8 +28,17 @@ type Assignment struct {
 	CreatedDate         eos.BlockTimestamp
 }
 
+func setOrDefault(values map[string]eos.Asset, key string, defaultValue *eos.Asset) *eos.Asset {
+	if val, ok := values[key]; ok {
+		return &val
+	}
+	return defaultValue
+}
+
 // NewAssignment converts a generic DAO Object to a typed Assignment
 func NewAssignment(daoObj Document, roles []Role, periods []Period) Assignment {
+	zeroSeeds, _ := eos.NewAssetFromString("0.0000 SEEDS")
+
 	var a Assignment
 	a.ID = daoObj.ID
 	a.Owner = daoObj.Names["owner"]
@@ -39,7 +48,7 @@ func NewAssignment(daoObj Document, roles []Role, periods []Period) Assignment {
 	a.HyphaPerPhase = daoObj.Assets["hypha_salary_per_phase"]
 	a.HvoicePerPhase = daoObj.Assets["hvoice_salary_per_phase"]
 	a.SeedsEscrowPerPhase = daoObj.Assets["seeds_escrow_salary_per_phase"]
-	a.SeedsLiquidPerPhase = daoObj.Assets["seeds_instant_salary_per_phase"]
+	a.SeedsLiquidPerPhase = *setOrDefault(daoObj.Assets, "seeds_instant_salary_per_phase", &zeroSeeds)
 	a.Role = roles[daoObj.Ints["role_id"]]
 	a.StartPeriod = periods[daoObj.Ints["start_period"]]
 	a.EndPeriod = periods[daoObj.Ints["end_period"]]

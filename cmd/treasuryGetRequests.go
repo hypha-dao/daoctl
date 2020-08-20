@@ -2,7 +2,10 @@ package cmd
 
 import (
 	"context"
+	"encoding/csv"
 	"fmt"
+	"log"
+	"os"
 
 	"github.com/alexeyco/simpletable"
 	"github.com/eoscanada/eos-go"
@@ -20,7 +23,27 @@ var treasuryGetRequestsCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 		ctx := context.Background()
 
-		printRequestsTable(ctx, getAPI(), "HUSD Redemption Requests")
+		if viper.GetBool("global-csv") {
+			requests := models.Requests(ctx, getAPI(), viper.GetBool("treasury-get-requests-cmd-all"))
+			requestsTable := views.RequestTable(requests)
+			csvData := models.TableToData(requestsTable)
+
+			file, err := os.Create(viper.GetString("global-output-file"))
+			if err != nil {
+				log.Fatalln("error writing csv:", err)
+			}
+
+			defer file.Close()
+
+			w := csv.NewWriter(file)
+			w.WriteAll(csvData) // calls Flush internally
+
+			if err := w.Error(); err != nil {
+				log.Fatalln("error writing csv:", err)
+			}
+		} else {
+			printRequestsTable(ctx, getAPI(), "HUSD Redemption Requests")
+		}
 	},
 }
 

@@ -26,9 +26,6 @@ Treasury:
   TokenContract: token.hypha
   Symbol: HUSD
   Contract: bank.hypha
-  EthUSDTContract: 0xdac17f958d2ee523a2206206994597c13d831ec7
-  EthUSDTAddress: 0xC20f453a4B4995CA032570f212988F4978B35dDd
-  BtcAddress: 35hfgfaUouzYixTUDV6CFqMiTSZcuNtTf9
 TelosDecideContract: trailservice
 `)
 
@@ -60,6 +57,8 @@ func init() {
 
 	RootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is ./daoctl.yaml)")
 	RootCmd.PersistentFlags().BoolP("debug", "", false, "Enables verbose debug messages")
+	RootCmd.PersistentFlags().BoolP("csv", "", false, "Output data as CSV to console - not supported on all commands yet")
+	RootCmd.PersistentFlags().StringP("output-file", "", "output.csv", "Output CSV data to file - not supported on all commands yet")
 	// RootCmd.Flags().BoolP("assets-as-floats", "f", false, "Format assets objects as floats (helpful for CSV export)")
 	//RootCmd.Flags().BoolP("include-proposals", "p", false, "Include proposals when retrieving objects")
 	RootCmd.PersistentFlags().StringP("vault-file", "", "./eosc-vault.json", "Wallet file that contains encrypted key material")
