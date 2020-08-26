@@ -74,7 +74,6 @@ func attachWallet(api *eos.API) {
 
 func getAPI() *eos.API {
 	httpHeaders := viper.GetStringSlice("global-http-header")
-	fmt.Println("EosioEndpoint from configuration: ", sanitizeAPIURL(viper.GetString("EosioEndpoint")))
 	api := eos.New(sanitizeAPIURL(viper.GetString("EosioEndpoint")))
 
 	for _, header := range httpHeaders {
