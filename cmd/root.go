@@ -19,14 +19,21 @@ import (
 var cfgFile string
 
 var yamlDefault = []byte(`
-EosioEndpoint: https://api.telos.kitchen
+EosioEndpoint: https://telos.caleos.io
 AssetsAsFloat: true
 DAOContract: dao.hypha
 Treasury:
-  TokenContract: token.hypha
+  TokenContract: husd.hypha
   Symbol: HUSD
   Contract: bank.hypha
+RewardToken:
+  Symbol: HYPHA
+  Contract: token.hypha
 TelosDecideContract: trailservice
+HyperionEndpoint: https://mainnet.telosusa.io/v2
+BallotPrefix: hypha1.....
+VoteTokenSymbol: HVOICE
+ServePort: 8085
 `)
 
 // RootCmd represents the base command when called without any subcommands

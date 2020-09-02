@@ -1,4 +1,4 @@
-EosioEndpoint: https://test.telos.kitchen
+EosioEndpoint: https://testnet.telos.caleos.io
 AssetsAsFloat: true
 DAOContract: dao.hypha
 Treasury:
@@ -12,5 +12,5 @@ TelosDecideContract: trailservice
 DAOUser: johnnyhypha1
 HyperionEndpoint: https://testnet.telosusa.io/v2
 BallotPrefix: hypha1.....
-RewardTokenSymbol: HYPHA
+RewardToken.Symbol: HYPHA
 VoteTokenSymbol: HVOICE

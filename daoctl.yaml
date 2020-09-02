@@ -1,5 +1,6 @@
 EosioEndpoint: https://api.telos.kitchen
-AssetsAsFloat: true
+HyperionEndpoint: https://mainnet.telosusa.io/v2
+
 DAOContract: dao.hypha
 Treasury:
   TokenContract: husd.hypha
@@ -7,7 +8,12 @@ Treasury:
   Contract: bank.hypha
 TelosDecideContract: trailservice
 DAOUser: hyphanewyork
-HyperionEndpoint: https://mainnet.telosusa.io/v2
+RewardToken:
+  Symbol: HYPHA
+  Contract: token.hypha
+
 BallotPrefix: hypha1.....
-RewardTokenSymbol: HYPHA
 VoteTokenSymbol: HVOICE
+
+AssetsAsFloat: true
+ServePort: 8085

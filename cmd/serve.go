@@ -101,23 +101,23 @@ var serveCmd = &cobra.Command{
 			for {
 				sup, err := models.GetHvoiceSupply(ctx, api)
 				if err == nil {
-					fmt.Println("Updated HVOICE supply to: ", sup.String())
+					// fmt.Println("Updated HVOICE supply to: ", sup.String())
 					hvoiceSupply.Set(assetToFloat(sup))
 				} else {
 					fmt.Println("Retrieved an error retrieving Hypha supply: ", err)
 				}
 
-				hypha, err := getTokenSupply(ctx, api, "token.hypha", "HYPHA")
+				hypha, err := getTokenSupply(ctx, api, viper.GetString("RewardToken.Contract"), viper.GetString("RewardToken.Symbol"))
 				if err == nil {
-					fmt.Println("Updated HYPHA supply to: ", hypha)
+					// fmt.Println("Updated HYPHA supply to: ", hypha)
 					hyphaSupply.Set(hypha)
 				} else {
 					fmt.Println("Retrieved an error retrieving Hypha supply: ", err)
 				}
 
-				husd, err := getTokenSupply(ctx, api, "husd.hypha", "HUSD")
+				husd, err := getTokenSupply(ctx, api, viper.GetString("Treasury.TokenContract"), viper.GetString("Treasury.Symbol"))
 				if err == nil {
-					fmt.Println("Updated HUSD supply to: ", husd)
+					// fmt.Println("Updated HUSD supply to: ", husd)
 					husdSupply.Set(husd)
 				} else {
 					fmt.Println("Retrieved an error retrieving HUSD supply: ", err)
@@ -131,7 +131,7 @@ var serveCmd = &cobra.Command{
 				query.Limit = 1000
 				results, err := query.Results()
 				if err == nil {
-					fmt.Println("Updated vote count ", len(results))
+					// fmt.Println("Updated vote count ", len(results))
 					voteEventCount.Set(float64(len(results)))
 				} else {
 					fmt.Println("Error updating the vote count: ", err)
@@ -142,7 +142,7 @@ var serveCmd = &cobra.Command{
 				query.Limit = 1000
 				results, err = query.Results()
 				if err == nil {
-					fmt.Println("Updated dao event count ", len(results))
+					// fmt.Println("Updated dao event count ", len(results))
 					daoEventCount.Set(float64(len(results)))
 				} else {
 					fmt.Println("Error updating the dao event count: ", err)
@@ -154,7 +154,8 @@ var serveCmd = &cobra.Command{
 
 		bind := ""
 		flagset := flag.NewFlagSet(os.Args[0], flag.ExitOnError)
-		flagset.StringVar(&bind, "bind", ":8085", "The socket to bind to.")
+		flagset.StringVar(&bind, "bind", ":"+viper.GetString("ServePort"), "The socket to bind to.")
+		fmt.Println("Binding daoctl serve port to: ", viper.GetString("ServePort"))
 		flagset.Parse(os.Args[1:])
 
 		r := prometheus.NewRegistry()

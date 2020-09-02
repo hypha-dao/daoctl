@@ -28,7 +28,7 @@ func (m *Member) String() string {
 	output := []string{
 		fmt.Sprintf("Member Account|%v", m.Account),
 		fmt.Sprintf(viper.GetString("VoteTokenSymbol")+"|%v", util.FormatAsset(&m.VoteTokenBalance, 2)),
-		fmt.Sprintf(viper.GetString("RewardTokenSymbol")+"|%v", util.FormatAsset(&m.RewardTokenBalance, 2)),
+		fmt.Sprintf(viper.GetString("RewardToken.Symbol")+"|%v", util.FormatAsset(&m.RewardTokenBalance, 2)),
 	}
 	return columnize.SimpleFormat(output)
 }
@@ -38,13 +38,13 @@ func NewMember(ctx context.Context, api *eos.API, acct eos.Name) Member {
 	var m Member
 	var err1 error
 	m.Account = acct
-	rewardTokenBalance, _ := api.GetCurrencyBalance(ctx, eos.AN(string(acct)), viper.GetString("RewardTokenSymbol"), eos.AN(viper.GetString("RewardTokenContract")))
+	rewardTokenBalance, _ := api.GetCurrencyBalance(ctx, eos.AN(string(acct)), viper.GetString("RewardToken.Symbol"), eos.AN(viper.GetString("RewardTokenContract")))
 	if len(rewardTokenBalance) == 0 {
-		//fmt.Println("Reward token not found, using 0.00 " + viper.GetString("RewardTokenSymbol"))
-		m.RewardTokenBalance, err1 = eos.NewAssetFromString("0.00 " + viper.GetString("RewardTokenSymbol")) // could fail
+		//fmt.Println("Reward token not found, using 0.00 " + viper.GetString("RewardToken.Symbol"))
+		m.RewardTokenBalance, err1 = eos.NewAssetFromString("0.00 " + viper.GetString("RewardToken.Symbol")) // could fail
 		if err1 != nil {
 			// TODO fix error handling and logging throughout app
-			panic("Unable to construct Asset object from the RewardTokenSymbol in configuration; please verify and try again.")
+			panic("Unable to construct Asset object from the RewardToken.Symbol in configuration; please verify and try again.")
 		}
 	} else {
 		m.RewardTokenBalance = rewardTokenBalance[0]

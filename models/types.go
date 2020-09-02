@@ -83,10 +83,10 @@ func ToDocument(objs Object) Document {
 		daoObject.Ints[element.Key] = objs.Ints[index].Value
 	}
 
-	daoObject.Transactions = make(map[string]eos.Transaction)
-	for index, element := range objs.Transactions {
-		daoObject.Transactions[element.Key] = objs.Transactions[index].Value
-	}
+	// daoObject.Transactions = make(map[string]eos.Transaction)
+	// for index, element := range objs.Transactions {
+	// 	daoObject.Transactions[element.Key] = objs.Transactions[index].Value
+	// }
 
 	daoObject.Strings = make(map[string]string)
 	for index, element := range objs.Strings {
