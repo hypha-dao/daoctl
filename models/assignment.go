@@ -47,7 +47,7 @@ func NewAssignment(daoObj Document, roles []Role, periods []Period) Assignment {
 	a.HusdPerPhase = daoObj.Assets["husd_salary_per_phase"]
 	a.HyphaPerPhase = daoObj.Assets["hypha_salary_per_phase"]
 	a.HvoicePerPhase = daoObj.Assets["hvoice_salary_per_phase"]
-	a.SeedsEscrowPerPhase = daoObj.Assets["seeds_escrow_salary_per_phase"]
+	a.SeedsEscrowPerPhase = *setOrDefault(daoObj.Assets, "seeds_escrow_salary_per_phase", &zeroSeeds)
 	a.SeedsLiquidPerPhase = *setOrDefault(daoObj.Assets, "seeds_instant_salary_per_phase", &zeroSeeds)
 	a.Role = roles[daoObj.Ints["role_id"]]
 	a.StartPeriod = periods[daoObj.Ints["start_period"]]

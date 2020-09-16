@@ -45,9 +45,14 @@ func NewPayout(daoObj Document, periods []Period) Payout {
 	} else {
 		a.SeedsLiquid = daoObj.Assets["seeds_instant_amount"]
 	}
+	if daoObj.Assets["seeds_escrow_amount"].Amount == 0 {
+		a.SeedsEscrow, _ = eos.NewAssetFromString("0.0000 SEEDS")
+	} else {
+		a.SeedsEscrow = daoObj.Assets["seeds_escrow_amount"]
+	}
+
 	a.Hypha = daoObj.Assets["hypha_amount"]
 	a.Hvoice = daoObj.Assets["hvoice_amount"]
-	a.SeedsEscrow = daoObj.Assets["seeds_escrow_amount"]
 	a.StartPeriod = periods[daoObj.Ints["start_period"]]
 	a.EndPeriod = periods[daoObj.Ints["end_period"]]
 	a.DeferredPay = float64(daoObj.Ints["deferred_perc_x100"]) / 100
