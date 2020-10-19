@@ -1,8 +1,9 @@
 package views
 
 import (
-	"github.com/hypha-dao/daoctl/util"
 	"strconv"
+
+	"github.com/hypha-dao/daoctl/util"
 
 	"github.com/alexeyco/simpletable"
 	"github.com/eoscanada/eos-go"
@@ -69,11 +70,11 @@ func PayoutTable(payouts []models.Payout) *simpletable.Table {
 			{},
 			{},
 			{Align: simpletable.AlignRight, Text: "Subtotal"},
-			{Align: simpletable.AlignRight, Text: util.FormatAsset(&husdTotal,0)},
-			{Align: simpletable.AlignRight, Text: util.FormatAsset(&hyphaTotal,0)},
-			{Align: simpletable.AlignRight, Text: util.FormatAsset(&hvoiceTotal,0)},
-			{Align: simpletable.AlignRight, Text: util.FormatAsset(&seedsEscrowTotal,0)},
-			{Align: simpletable.AlignRight, Text: util.FormatAsset(&seedsLiquidTotal,0)},
+			{Align: simpletable.AlignRight, Text: util.FormatAsset(&husdTotal, 0)},
+			{Align: simpletable.AlignRight, Text: util.FormatAsset(&hyphaTotal, 0)},
+			{Align: simpletable.AlignRight, Text: util.FormatAsset(&hvoiceTotal, 0)},
+			{Align: simpletable.AlignRight, Text: util.FormatAsset(&seedsEscrowTotal, 0)},
+			{Align: simpletable.AlignRight, Text: util.FormatAsset(&seedsLiquidTotal, 0)},
 			{}, {},
 		},
 	}
