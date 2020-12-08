@@ -29,6 +29,30 @@ type Config struct {
 	RawConfig               rawConfig
 }
 
+// NameKV struct
+type NameKV struct {
+	Key   string   `json:"key"`
+	Value eos.Name `json:"value"`
+}
+
+// StringKV struct
+type StringKV struct {
+	Key   string `json:"key"`
+	Value string `json:"value"`
+}
+
+// TimePointKV struct
+type TimePointKV struct {
+	Key   string             `json:"key"`
+	Value eos.BlockTimestamp `json:"value"`
+}
+
+// IntKV struct
+type IntKV struct {
+	Key   string `json:"key"`
+	Value uint64 `json:"value"`
+}
+
 type rawConfig struct {
 	RedemptionSymbol string             `json:"redemption_symbol"`
 	Names            []NameKV           `json:"names"`
@@ -144,6 +168,15 @@ func (t *Treasury) getRedemptionRequests(api *eos.API, treasuryContract string) 
 		t.TotalReqRedemptions = t.TotalReqRedemptions.Add(element.Requested)
 	}
 	return redemptionMap
+}
+
+// Scope ...
+type Scope struct {
+	Code  eos.Name `json:"code"`
+	Scope eos.Name `json:"scope"`
+	Table eos.Name `json:"table"`
+	Payer eos.Name `json:"payer"`
+	Count uint64   `json:"count"`
 }
 
 func (t *Treasury) getHolders(api *eos.API, treasuryContract, tokenContract, symbol string) map[eos.Name]eos.Asset {

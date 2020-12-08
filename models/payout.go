@@ -4,7 +4,14 @@ import (
 	"context"
 
 	eos "github.com/eoscanada/eos-go"
+	"github.com/hypha-dao/document-graph/docgraph"
 )
+
+// import (
+// 	"context"
+
+// 	eos "github.com/eoscanada/eos-go"
+// )
 
 // Payout represents a person assigned to a role for a specific period of time
 type Payout struct {
@@ -27,38 +34,39 @@ type Payout struct {
 }
 
 // NewPayout converts a generic DAO Object to a typed Payout
-func NewPayout(daoObj Document, periods []Period) Payout {
-	var a Payout
-	a.ID = daoObj.ID
-	a.Receiver = daoObj.Names["recipient"]
-	a.Title = daoObj.Strings["title"]
-	a.BallotName = daoObj.Names["ballot_id"]
-	a.Husd = daoObj.Assets["husd_amount"]
+func NewPayout(d docgraph.Document, periods []Period) Payout {
+	return Payout{}
+	// var a Payout
+	// a.ID = daoObj.ID
+	// a.Receiver = daoObj.Names["recipient"]
+	// a.Title = daoObj.Strings["title"]
+	// a.BallotName = daoObj.Names["ballot_id"]
+	// a.Husd = daoObj.Assets["husd_amount"]
 
-	if daoObj.Assets["husd_amount"].Amount == 0 {
-		a.Husd, _ = eos.NewAssetFromString("0.00 HUSD")
-	} else {
-		a.Husd = daoObj.Assets["husd_amount"]
-	}
-	if daoObj.Assets["seeds_instant_amount"].Amount == 0 {
-		a.SeedsLiquid, _ = eos.NewAssetFromString("0.0000 SEEDS")
-	} else {
-		a.SeedsLiquid = daoObj.Assets["seeds_instant_amount"]
-	}
-	if daoObj.Assets["seeds_escrow_amount"].Amount == 0 {
-		a.SeedsEscrow, _ = eos.NewAssetFromString("0.0000 SEEDS")
-	} else {
-		a.SeedsEscrow = daoObj.Assets["seeds_escrow_amount"]
-	}
+	// if daoObj.Assets["husd_amount"].Amount == 0 {
+	// 	a.Husd, _ = eos.NewAssetFromString("0.00 HUSD")
+	// } else {
+	// 	a.Husd = daoObj.Assets["husd_amount"]
+	// }
+	// if daoObj.Assets["seeds_instant_amount"].Amount == 0 {
+	// 	a.SeedsLiquid, _ = eos.NewAssetFromString("0.0000 SEEDS")
+	// } else {
+	// 	a.SeedsLiquid = daoObj.Assets["seeds_instant_amount"]
+	// }
+	// if daoObj.Assets["seeds_escrow_amount"].Amount == 0 {
+	// 	a.SeedsEscrow, _ = eos.NewAssetFromString("0.0000 SEEDS")
+	// } else {
+	// 	a.SeedsEscrow = daoObj.Assets["seeds_escrow_amount"]
+	// }
 
-	a.Hypha = daoObj.Assets["hypha_amount"]
-	a.Hvoice = daoObj.Assets["hvoice_amount"]
-	a.StartPeriod = periods[daoObj.Ints["start_period"]]
-	a.EndPeriod = periods[daoObj.Ints["end_period"]]
-	a.DeferredPay = float64(daoObj.Ints["deferred_perc_x100"]) / 100
-	a.InstantHusdPerc = float64(daoObj.Ints["instant_husd_perc_x100"]) / 100
-	a.CreatedDate = daoObj.CreatedDate
-	return a
+	// a.Hypha = daoObj.Assets["hypha_amount"]
+	// a.Hvoice = daoObj.Assets["hvoice_amount"]
+	// a.StartPeriod = periods[daoObj.Ints["start_period"]]
+	// a.EndPeriod = periods[daoObj.Ints["end_period"]]
+	// a.DeferredPay = float64(daoObj.Ints["deferred_perc_x100"]) / 100
+	// a.InstantHusdPerc = float64(daoObj.Ints["instant_husd_perc_x100"]) / 100
+	// a.CreatedDate = daoObj.CreatedDate
+	// return a
 }
 
 // ProposedPayouts provides the active payout proposals
@@ -78,15 +86,16 @@ func NewPayout(daoObj Document, periods []Period) Payout {
 
 // Payouts provides the set of active approved payouts
 func Payouts(ctx context.Context, api *eos.API, periods []Period, scope string) []Payout {
-	objects := LoadObjects(ctx, api, scope)
-	var payouts []Payout
-	for index := range objects {
-		daoObject := ToDocument(objects[index])
-		if daoObject.Names["type"] == "payout" {
-			payout := NewPayout(daoObject, periods)
-			payout.Approved = scopeApprovals(scope)
-			payouts = append(payouts, payout)
-		}
-	}
-	return payouts
+	return []Payout{}
+	// objects := LoadObjects(ctx, api, scope)
+	// var payouts []Payout
+	// for index := range objects {
+	// 	daoObject := ToDocument(objects[index])
+	// 	if daoObject.Names["type"] == "payout" {
+	// 		payout := NewPayout(daoObject, periods)
+	// 		payout.Approved = scopeApprovals(scope)
+	// 		payouts = append(payouts, payout)
+	// 	}
+	// }
+	// return payouts
 }

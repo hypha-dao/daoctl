@@ -1,4 +1,4 @@
-EosioEndpoint: https://test.telos.kitchen
+EosioEndpoint: http://localhost:8888
 AssetsAsFloat: true
 DAOContract: dao1.hypha
 Treasury:
@@ -8,8 +8,8 @@ Treasury:
   EthUSDTContract: 0xdac17f958d2ee523a2206206994597c13d831ec7
   EthUSDTAddress: 0xC20f453a4B4995CA032570f212988F4978B35dDd
   BtcAddress: 35hfgfaUouzYixTUDV6CFqMiTSZcuNtTf9
-TelosDecideContract: trailservice
-DAOUser: johnnyhypha1
+TelosDecideContract: telos.decide
+DAOUser: member1
 HyperionEndpoint: https://testnet.telosusa.io/v2
 BallotPrefix: hypha1.....
 RewardToken.Symbol: HYPHA
