@@ -8,3 +8,5 @@ dao-backup-*
 *.json
 test-payloads/
 dist/
+daoctl-*.yaml
+daoctl-local.yaml
