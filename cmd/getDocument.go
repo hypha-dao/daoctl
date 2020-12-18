@@ -2,16 +2,42 @@ package cmd
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
+	"io/ioutil"
+	"strconv"
+	"strings"
 
 	"github.com/alexeyco/simpletable"
 	"github.com/eoscanada/eos-go"
 	"github.com/hypha-dao/daoctl/views"
 	"github.com/hypha-dao/document-graph/docgraph"
+	"github.com/ryanuber/columnize"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 )
+
+func cleanString(input string) string {
+	input = strings.Replace(input, "\n", "", -1)
+
+	if len(input) > 45 {
+		return input[:40]
+	}
+	return input
+}
+
+func printContentGroups(d *docgraph.Document) {
+
+	fmt.Println("ContentGroups")
+	for _, contentGroup := range d.ContentGroups {
+		fmt.Println("  ContentGroup")
+
+		for _, content := range contentGroup {
+			fmt.Printf("    %-25v", cleanString(content.Label))
+			fmt.Printf("%-25v\n", cleanString(content.Value.String()))
+		}
+	}
+	fmt.Println()
+}
 
 var getDocumentCmd = &cobra.Command{
 	Use:   "document [hash]",
@@ -29,12 +55,19 @@ var getDocumentCmd = &cobra.Command{
 			panic("Document not found: " + hash)
 		}
 
-		jsonDoc, _ := json.MarshalIndent(document, "", "  ")
+		fmt.Println("Document Details")
 
-		fmt.Println("\nDocument Details")
 		fmt.Println()
-		fmt.Println(string(jsonDoc))
+		output := []string{
+			fmt.Sprintf("ID|%v", strconv.Itoa(int(document.ID))),
+			fmt.Sprintf("Hash|%v", document.Hash.String()),
+			fmt.Sprintf("Creator|%v", string(document.Creator)),
+			fmt.Sprintf("Created Date|%v", document.CreatedDate.Time.Format("2006 Jan 02")),
+		}
+
+		fmt.Println(columnize.SimpleFormat(output))
 		fmt.Println()
+		printContentGroups(&document)
 
 		fromEdges, err := docgraph.GetEdgesFromDocument(ctx, api, eos.AN(viper.GetString("DAOContract")), document)
 		if err != nil {
@@ -53,6 +86,8 @@ var getDocumentCmd = &cobra.Command{
 		toEdgesTable := views.EdgeTable(toEdges)
 		toEdgesTable.SetStyle(simpletable.StyleCompactLite)
 		fmt.Println("\n" + toEdgesTable.String() + "\n\n")
+
+		err = ioutil.WriteFile("last-doc.tmp", []byte(hash), 0644)
 	},
 }
 

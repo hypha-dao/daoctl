@@ -59,7 +59,7 @@ func PayoutTable(payouts []models.Payout) *simpletable.Table {
 			{Align: simpletable.AlignRight, Text: util.FormatAsset(&payouts[index].SeedsEscrow, 0)},
 			{Align: simpletable.AlignRight, Text: util.FormatAsset(&payouts[index].SeedsLiquid, 0)},
 			{Align: simpletable.AlignRight, Text: payouts[index].CreatedDate.Time.Format("2006 Jan 02")},
-			{Align: simpletable.AlignRight, Text: string(payouts[index].BallotName)[10:]},
+			{Align: simpletable.AlignRight, Text: string(payouts[index].BallotName)[9:]},
 		}
 		table.Body.Cells = append(table.Body.Cells, r)
 	}

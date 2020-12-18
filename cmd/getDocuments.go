@@ -34,5 +34,4 @@ var getDocumentsCmd = &cobra.Command{
 
 func init() {
 	getCmd.AddCommand(getDocumentsCmd)
-	getDocumentsCmd.Flags().StringP("scope", "", "proposal", "document scope used to query the on-chain object table")
 }
