@@ -19,7 +19,7 @@ import (
 func cleanString(input string) string {
 	input = strings.Replace(input, "\n", "", -1)
 
-	if len(input) > 45 {
+	if len(input) > 65 {
 		return input[:40]
 	}
 	return input
@@ -32,8 +32,9 @@ func printContentGroups(d *docgraph.Document) {
 		fmt.Println("  ContentGroup")
 
 		for _, content := range contentGroup {
-			fmt.Printf("    %-25v", cleanString(content.Label))
-			fmt.Printf("%-25v\n", cleanString(content.Value.String()))
+			fmt.Print("    ")
+			fmt.Printf("%-35v", cleanString(content.Label))
+			fmt.Printf("%-65v\n", cleanString(content.Value.String()))
 		}
 	}
 	fmt.Println()

@@ -10,3 +10,4 @@ test-payloads/
 dist/
 daoctl-*.yaml
 daoctl-local.yaml
+last-doc.tmp
