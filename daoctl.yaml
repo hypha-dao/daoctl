@@ -12,7 +12,7 @@ RewardToken:
   Symbol: HYPHA
   Contract: token.hypha
 
-BallotPrefix: hypha1.....
+BallotPrefix: hypha1....
 VoteTokenSymbol: HVOICE
 
 AssetsAsFloat: true

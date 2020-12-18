@@ -1,6 +1,8 @@
 package models
 
 import (
+	"time"
+
 	"github.com/alexeyco/simpletable"
 )
 
@@ -24,8 +26,17 @@ func TableToData(table *simpletable.Table) [][]string {
 }
 
 func scopeApprovals(scope string) bool {
-  if scope == "assignment" || scope == "role" || scope == "payout"{
-    return true
-  }
-  return false
+	if scope == "assignment" || scope == "role" || scope == "payout" {
+		return true
+	}
+	return false
+}
+
+// QrAction ...
+type QrAction struct {
+	Timestamp      time.Time `json:"@timestamp"`
+	TrxID          string    `json:"trx_id"`
+	ActionContract string
+	ActionName     string
+	Data           string
 }

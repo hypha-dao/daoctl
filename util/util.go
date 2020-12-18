@@ -1,13 +1,33 @@
 package util
 
 import (
+	"fmt"
 	"math"
 	"math/big"
+	"os"
 
 	"github.com/eoscanada/eos-go"
+	"github.com/eoscanada/eosc/cli"
 	"github.com/leekchan/accounting"
 	"github.com/spf13/viper"
 )
+
+// ErrorCheck - need to improve this
+// TODO: fix
+func ErrorCheck(prefix string, err error) {
+	if err != nil {
+		fmt.Printf("ERROR: %s: %s\n", prefix, err)
+		os.Exit(1)
+	}
+}
+
+// ToAccount ...
+func ToAccount(in, field string) eos.AccountName {
+	acct, err := cli.ToAccountName(in)
+	ErrorCheck(fmt.Sprintf("invalid account format for %q", field), err)
+
+	return acct
+}
 
 // FormatAsset returns a string for an eos.Asset, taking into account the AssetsAsFloat configuration parameter
 func FormatAsset(a *eos.Asset, precision int) string {

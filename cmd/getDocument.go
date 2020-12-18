@@ -2,40 +2,93 @@ package cmd
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
+	"io/ioutil"
 	"strconv"
+	"strings"
 
-	eos "github.com/eoscanada/eos-go"
-	"github.com/hypha-dao/daoctl/models"
+	"github.com/alexeyco/simpletable"
+	"github.com/eoscanada/eos-go"
+	"github.com/hypha-dao/daoctl/views"
+	"github.com/hypha-dao/document-graph/docgraph"
+	"github.com/ryanuber/columnize"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 )
 
+func cleanString(input string) string {
+	input = strings.Replace(input, "\n", "", -1)
+
+	if len(input) > 65 {
+		return input[:40]
+	}
+	return input
+}
+
+func printContentGroups(d *docgraph.Document) {
+
+	fmt.Println("ContentGroups")
+	for _, contentGroup := range d.ContentGroups {
+		fmt.Println("  ContentGroup")
+
+		for _, content := range contentGroup {
+			fmt.Print("    ")
+			fmt.Printf("%-35v", cleanString(content.Label))
+			fmt.Printf("%-65v\n", cleanString(content.Value.String()))
+		}
+	}
+	fmt.Println()
+}
+
 var getDocumentCmd = &cobra.Command{
-	Use:   "document [document id]",
+	Use:   "document [hash]",
 	Short: "retrieve document details",
-	Long:  "retrieve the detailed about a document",
+	Long:  "retrieve the detailed content within a document",
 	Args:  cobra.RangeArgs(1, 1),
 	Run: func(cmd *cobra.Command, args []string) {
 		api := eos.New(viper.GetString("EosioEndpoint"))
 		ctx := context.Background()
-		//ac := accounting.NewAccounting("", 0, ",", ".", "%s %v", "%s (%v)", "%s --") // TODO: make this configurable
 
-		documentID, err := strconv.ParseUint(args[0], 10, 64)
+		hash := args[0]
+
+		document, err := docgraph.LoadDocument(ctx, api, eos.AN(viper.GetString("DAOContract")), hash)
 		if err != nil {
-			fmt.Println("Parse error: Document id must be a positive integer (uint64)")
-			return
+			panic("Document not found: " + hash)
 		}
-		document := models.LoadDocument(ctx, api, viper.GetString("get-document-cmd-scope"), documentID)
 
-		jsonDoc, _ := json.MarshalIndent(document, "", "  ")
+		fmt.Println("Document Details")
 
-		fmt.Println("\n\nDocument Details")
-		fmt.Println("Scope: ", viper.GetString("get-document-cmd-scope"), "; ID: ", documentID)
 		fmt.Println()
-		fmt.Println(string(jsonDoc))
+		output := []string{
+			fmt.Sprintf("ID|%v", strconv.Itoa(int(document.ID))),
+			fmt.Sprintf("Hash|%v", document.Hash.String()),
+			fmt.Sprintf("Creator|%v", string(document.Creator)),
+			fmt.Sprintf("Created Date|%v", document.CreatedDate.Time.Format("2006 Jan 02")),
+		}
+
+		fmt.Println(columnize.SimpleFormat(output))
 		fmt.Println()
+		printContentGroups(&document)
+
+		fromEdges, err := docgraph.GetEdgesFromDocument(ctx, api, eos.AN(viper.GetString("DAOContract")), document)
+		if err != nil {
+			fmt.Println("ERROR: Cannot get edges from document: ", err)
+		}
+
+		fromEdgesTable := views.EdgeTable(fromEdges)
+		fromEdgesTable.SetStyle(simpletable.StyleCompactLite)
+		fmt.Println("\n" + fromEdgesTable.String() + "\n\n")
+
+		toEdges, err := docgraph.GetEdgesToDocument(ctx, api, eos.AN(viper.GetString("DAOContract")), document)
+		if err != nil {
+			fmt.Println("ERROR: Cannot get edges to document: ", err)
+		}
+
+		toEdgesTable := views.EdgeTable(toEdges)
+		toEdgesTable.SetStyle(simpletable.StyleCompactLite)
+		fmt.Println("\n" + toEdgesTable.String() + "\n\n")
+
+		err = ioutil.WriteFile("last-doc.tmp", []byte(hash), 0644)
 	},
 }
 
@@ -61,14 +114,12 @@ var getDocumentCmd = &cobra.Command{
 // 		fmt.Sprintf("Start Period|%v", r.StartPeriod.StartTime.Time.Format("2006 Jan 02 15:04:05")),
 // 		fmt.Sprintf("End Period|%v", r.EndPeriod.EndTime.Time.Format("2006 Jan 02 15:04:05")),
 // 		fmt.Sprintf("Created Date|%v", r.CreatedDate.Time.Format("2006 Jan 02 15:04:05")),
-// 		fmt.Sprintf("Ballot ID|%v", string(r.BallotName)[11:]),
+// 		fmt.Sprintf("Ballot ID|%v", string(r.BallotName)[10:]),
 // 		fmt.Sprintf("Description|%v", r.Description),
 // 	}
 // 	return columnize.SimpleFormat(output)
 // }
 
 func init() {
-	getDocumentCmd.Flags().StringP("scope", "", "proposal", "document scope used to query the on-chain object table")
-
 	getCmd.AddCommand(getDocumentCmd)
 }

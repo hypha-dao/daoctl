@@ -55,7 +55,7 @@ func RoleTable(roles []models.Role) *simpletable.Table {
 			{Align: simpletable.AlignRight, Text: util.FormatAsset(&usdFte, 0)},
 			{Align: simpletable.AlignRight, Text: roles[index].StartPeriod.StartTime.Time.Format("2006 Jan 02")},
 			{Align: simpletable.AlignRight, Text: roles[index].EndPeriod.EndTime.Time.Format("2006 Jan 02")},
-			{Align: simpletable.AlignRight, Text: string(roles[index].BallotName)[11:]},
+			{Align: simpletable.AlignRight, Text: string(roles[index].BallotName)[10:]},
 			{Align: simpletable.AlignRight, Text: strconv.Itoa(int(roles[index].PriorID))},
 		}
 

@@ -6,8 +6,8 @@ import (
 
 	"github.com/alexeyco/simpletable"
 	"github.com/eoscanada/eos-go"
-	"github.com/hypha-dao/daoctl/models"
 	"github.com/hypha-dao/daoctl/views"
+	"github.com/hypha-dao/document-graph/docgraph"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 )
@@ -21,7 +21,10 @@ var getDocumentsCmd = &cobra.Command{
 		api := eos.New(viper.GetString("EosioEndpoint"))
 		ctx := context.Background()
 
-		docs := models.LoadDocuments(ctx, api, viper.GetString("get-documents-cmd-scope"))
+		docs, err := docgraph.GetAllDocuments(ctx, api, eos.AN(viper.GetString("DAOContract")))
+		if err != nil {
+			panic(fmt.Errorf("cannot get all documents: %v", err))
+		}
 
 		docsTable := views.DocTable(docs)
 		docsTable.SetStyle(simpletable.StyleCompactLite)
@@ -31,5 +34,4 @@ var getDocumentsCmd = &cobra.Command{
 
 func init() {
 	getCmd.AddCommand(getDocumentsCmd)
-	getDocumentsCmd.Flags().StringP("scope", "", "proposal", "document scope used to query the on-chain object table")
 }
