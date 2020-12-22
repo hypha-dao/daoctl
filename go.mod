@@ -17,6 +17,7 @@ require (
 	github.com/hypha-dao/document-graph/docgraph v0.0.0-20201203194446-48c1c65010d0
 	github.com/k0kubun/go-ansi v0.0.0-20180517002512-3bf9e2903213
 	github.com/leekchan/accounting v1.0.0
+	github.com/manifoldco/promptui v0.8.0
 	github.com/mitchellh/go-homedir v1.1.0
 	github.com/pkg/errors v0.9.1
 	github.com/prometheus/client_golang v1.8.0

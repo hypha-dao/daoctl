@@ -25,7 +25,7 @@ var getEdgesCmd = &cobra.Command{
 			panic(fmt.Errorf("cannot get all edges: %v", err))
 		}
 
-		edgesTable := views.EdgeTable(edges)
+		edgesTable := views.EdgeTable(edges, false, false)
 		edgesTable.SetStyle(simpletable.StyleCompactLite)
 		fmt.Println("\n" + edgesTable.String() + "\n\n")
 	},

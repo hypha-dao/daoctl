@@ -21,7 +21,7 @@ func edgeHeader() *simpletable.Header {
 }
 
 // EdgeTable is a simpleTable.Table object with documents
-func EdgeTable(edges []docgraph.Edge) *simpletable.Table {
+func EdgeTable(edges []docgraph.Edge, overLabelSelf, fromSelf bool) *simpletable.Table {
 
 	table := simpletable.New()
 	table.Header = edgeHeader()
@@ -30,12 +30,24 @@ func EdgeTable(edges []docgraph.Edge) *simpletable.Table {
 
 		r := []*simpletable.Cell{
 			{Align: simpletable.AlignRight, Text: strconv.Itoa(int(edge.ID))},
-			// {Align: simpletable.AlignRight, Text: string(edge.Creator)},
-			{Align: simpletable.AlignRight, Text: edge.CreatedDate.Time.Format("2006 Jan 02")},
-			{Align: simpletable.AlignRight, Text: edge.FromNode.String()},
-			{Align: simpletable.AlignRight, Text: string(edge.EdgeName)},
-			{Align: simpletable.AlignRight, Text: edge.ToNode.String()},
+			{Align: simpletable.AlignRight, Text: edge.CreatedDate.Time.Format("02 Jan 2006 15:04:05")}}
+
+		if overLabelSelf {
+			if fromSelf {
+				r = append(r, &simpletable.Cell{Align: simpletable.AlignRight, Text: "[ self ]"},
+					&simpletable.Cell{Align: simpletable.AlignRight, Text: string(edge.EdgeName)},
+					&simpletable.Cell{Align: simpletable.AlignRight, Text: edge.ToNode.String()})
+			} else {
+				r = append(r, &simpletable.Cell{Align: simpletable.AlignRight, Text: edge.FromNode.String()},
+					&simpletable.Cell{Align: simpletable.AlignRight, Text: string(edge.EdgeName)},
+					&simpletable.Cell{Align: simpletable.AlignRight, Text: "[ self ]"})
+			}
+		} else {
+			r = append(r, &simpletable.Cell{Align: simpletable.AlignRight, Text: edge.FromNode.String()},
+				&simpletable.Cell{Align: simpletable.AlignRight, Text: string(edge.EdgeName)},
+				&simpletable.Cell{Align: simpletable.AlignRight, Text: edge.ToNode.String()})
 		}
+
 		table.Body.Cells = append(table.Body.Cells, r)
 	}
 

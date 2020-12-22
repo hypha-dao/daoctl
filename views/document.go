@@ -22,8 +22,7 @@ func docHeader() *simpletable.Header {
 }
 
 func isSkipped(label string) bool {
-	skipLabels := []string{"content_group_label", "legacy_object_scope", "legacy_object_id", "legacy_object_created_date", "client_version", "contract_version", "url", "description",
-		"period"}
+	skipLabels := []string{"period"}
 
 	for _, skipLabel := range skipLabels {
 		if label == skipLabel {
