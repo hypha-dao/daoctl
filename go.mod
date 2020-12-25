@@ -7,6 +7,7 @@ replace github.com/hypha-dao/dao-go => github.com/hypha-dao/dao-contracts/dao-go
 replace github.com/hypha-dao/document-graph/docgraph => github.com/hypha-dao/document-graph/docgraph v0.0.0-20201205184845-8c83c9c9a989
 
 require (
+	github.com/Workiva/go-datastructures v1.0.52
 	github.com/alexeyco/simpletable v0.0.0-20200730140406-5bb24159ccfb
 	github.com/bronze1man/go-yaml2json v0.0.0-20150129175009-f6f64b738964
 	github.com/digital-scarcity/eos-go-test v0.0.0-20201030135239-784ff05708c0
@@ -19,6 +20,7 @@ require (
 	github.com/leekchan/accounting v1.0.0
 	github.com/manifoldco/promptui v0.8.0
 	github.com/mitchellh/go-homedir v1.1.0
+	github.com/patrickmn/go-cache v2.1.0+incompatible
 	github.com/pkg/errors v0.9.1
 	github.com/prometheus/client_golang v1.8.0
 	github.com/ryanuber/columnize v2.1.2+incompatible

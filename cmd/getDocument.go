@@ -6,12 +6,14 @@ import (
 	"sort"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/alexeyco/simpletable"
 	"github.com/eoscanada/eos-go"
 	"github.com/hypha-dao/daoctl/views"
 	"github.com/hypha-dao/document-graph/docgraph"
 	"github.com/manifoldco/promptui"
+	"github.com/patrickmn/go-cache"
 	"github.com/ryanuber/columnize"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
@@ -113,11 +115,30 @@ type edgeChoice struct {
 
 // Page ...
 type Page struct {
-	Primary docgraph.Document
-	// AllEdges  []docgraph.Edge
-	FromEdges []docgraph.Edge
-	ToEdges   []docgraph.Edge
-	Choices   []edgeChoice
+	Primary     docgraph.Document
+	FromEdges   []docgraph.Edge
+	ToEdges     []docgraph.Edge
+	EdgePrompts []edgeChoice
+}
+
+func (p *Page) getKey() string {
+	return p.Primary.Hash.String()
+}
+
+func getDocument(ctx context.Context, api *eos.API, c *cache.Cache, contract eos.AccountName, hash string) docgraph.Document {
+
+	documenter, found := c.Get(hash)
+	if found {
+		return documenter.(docgraph.Document)
+	}
+
+	document, err := docgraph.LoadDocument(ctx, api, contract, hash)
+	if err != nil {
+		panic("Document not found: " + hash)
+	}
+	c.Set(document.Hash.String(), document, cache.DefaultExpiration)
+
+	return document
 }
 
 var getDocumentCmd = &cobra.Command{
@@ -128,7 +149,7 @@ var getDocumentCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 		api := eos.New(viper.GetString("EosioEndpoint"))
 		ctx := context.Background()
-		// var pages []Page
+		contract := eos.AN(viper.GetString("DAOContract"))
 
 		var hash string
 		if len(args) == 0 {
@@ -137,99 +158,97 @@ var getDocumentCmd = &cobra.Command{
 			hash = args[0]
 		}
 
+		var page Page
+		var document docgraph.Document
+		var err error
+		pages := cache.New(5*time.Minute, 10*time.Minute)
+		documents := cache.New(5*time.Minute, 10*time.Minute)
+
 		for {
+			pager, found := pages.Get(hash)
+			if found {
+				page = pager.(Page)
+			} else {
+				page = Page{}
 
-			page := Page{}
-			// pages = append(pages)
+				page.Primary = getDocument(ctx, api, documents, contract, hash)
 
-			tempDocument, err := docgraph.LoadDocument(ctx, api, eos.AN(viper.GetString("DAOContract")), hash)
-			if err != nil {
-				panic("Document not found: " + hash)
+				page.FromEdges, err = docgraph.GetEdgesFromDocument(ctx, api, contract, page.Primary)
+				if err != nil {
+					fmt.Println("ERROR: Cannot get edges from document: ", err)
+				}
+
+				page.ToEdges, err = docgraph.GetEdgesToDocument(ctx, api, contract, page.Primary)
+				if err != nil {
+					fmt.Println("ERROR: Cannot get edges to document: ", err)
+				}
+
+				page.EdgePrompts = make([]edgeChoice, len(page.FromEdges)+len(page.ToEdges))
+
+				for i, edge := range page.FromEdges {
+
+					document = getDocument(ctx, api, documents, contract, edge.ToNode.String())
+
+					typeLabel := "Unknown"
+					documentType, _ := document.GetContent("type")
+					if documentType != nil {
+						// if isSkipped(documentType.String()) {
+						// 	continue
+						// }
+						typeLabel = documentType.String()
+					}
+
+					nodeLabel := "Unknown"
+					documentLabel, _ := document.GetContent("node_label")
+					if documentLabel != nil {
+						nodeLabel = documentLabel.String()
+					}
+
+					page.EdgePrompts[i] = edgeChoice{
+						Name:        edge.EdgeName,
+						Forward:     true,
+						To:          edge.ToNode.String(),
+						ToType:      typeLabel,
+						ToLabel:     nodeLabel,
+						CreatedDate: edge.CreatedDate,
+					}
+				}
+
+				for i, edge := range page.ToEdges {
+
+					document = getDocument(ctx, api, documents, contract, edge.FromNode.String())
+
+					typeLabel := "Unknown"
+					documentType, _ := document.GetContent("type")
+					if documentType != nil {
+						// if isSkipped(documentType.String()) {
+						// 	continue
+						// }
+						typeLabel = documentType.String()
+					}
+
+					nodeLabel := "Unknown"
+					documentLabel, _ := document.GetContent("node_label")
+					if documentLabel != nil {
+						nodeLabel = documentLabel.String()
+					}
+
+					page.EdgePrompts[i+len(page.FromEdges)] = edgeChoice{
+						Name:        edge.EdgeName,
+						Forward:     false,
+						To:          edge.FromNode.String(),
+						ToType:      typeLabel,
+						ToLabel:     nodeLabel,
+						CreatedDate: edge.CreatedDate,
+					}
+				}
+
+				sort.SliceStable(page.EdgePrompts, func(i, j int) bool {
+					return page.EdgePrompts[i].CreatedDate.Before(page.EdgePrompts[j].CreatedDate.Time)
+				})
 			}
-			page.Primary = tempDocument
 
 			printDocument(ctx, api, &page)
-
-			page.FromEdges, err = docgraph.GetEdgesFromDocument(ctx, api, eos.AN(viper.GetString("DAOContract")), page.Primary)
-			if err != nil {
-				fmt.Println("ERROR: Cannot get edges from document: ", err)
-			}
-
-			page.ToEdges, err = docgraph.GetEdgesToDocument(ctx, api, eos.AN(viper.GetString("DAOContract")), page.Primary)
-			if err != nil {
-				fmt.Println("ERROR: Cannot get edges to document: ", err)
-			}
-
-			edgePrompts := make([]edgeChoice, len(page.FromEdges)+len(page.ToEdges))
-			// page.AllEdges = append(page.AllEdges, page.FromEdges)
-
-			for i, edge := range page.FromEdges {
-
-				document, err := docgraph.LoadDocument(ctx, api, eos.AN(viper.GetString("DAOContract")), edge.ToNode.String())
-				if err != nil {
-					panic("Document not found: " + edge.ToNode.String())
-				}
-
-				typeLabel := "Unknown"
-				documentType, _ := document.GetContent("type")
-				if documentType != nil {
-					// if isSkipped(documentType.String()) {
-					// 	continue
-					// }
-					typeLabel = documentType.String()
-				}
-
-				nodeLabel := "Unknown"
-				documentLabel, _ := document.GetContent("node_label")
-				if documentLabel != nil {
-					nodeLabel = documentLabel.String()
-				}
-
-				edgePrompts[i] = edgeChoice{
-					Name:        edge.EdgeName,
-					Forward:     true,
-					To:          edge.ToNode.String(),
-					ToType:      typeLabel,
-					ToLabel:     nodeLabel,
-					CreatedDate: edge.CreatedDate,
-				}
-			}
-
-			for i, edge := range page.ToEdges {
-
-				document, err := docgraph.LoadDocument(ctx, api, eos.AN(viper.GetString("DAOContract")), edge.FromNode.String())
-				if err != nil {
-					panic("Document not found: " + edge.ToNode.String())
-				}
-
-				typeLabel := "Unknown"
-				documentType, _ := document.GetContent("type")
-				if documentType != nil {
-					// if isSkipped(documentType.String()) {
-					// 	continue
-					// }
-					typeLabel = documentType.String()
-				}
-
-				nodeLabel := "Unknown"
-				documentLabel, _ := document.GetContent("node_label")
-				if documentLabel != nil {
-					nodeLabel = documentLabel.String()
-				}
-
-				edgePrompts[i+len(page.FromEdges)] = edgeChoice{
-					Name:        edge.EdgeName,
-					Forward:     false,
-					To:          edge.FromNode.String(),
-					ToType:      typeLabel,
-					ToLabel:     nodeLabel,
-					CreatedDate: edge.CreatedDate,
-				}
-			}
-
-			sort.SliceStable(edgePrompts, func(i, j int) bool {
-				return edgePrompts[i].CreatedDate.Before(edgePrompts[j].CreatedDate.Time)
-			})
 
 			templates := &promptui.SelectTemplates{
 				Label:    "{{ . }}?",
@@ -248,7 +267,7 @@ var getDocumentCmd = &cobra.Command{
 			}
 
 			searcher := func(input string, index int) bool {
-				pepper := edgePrompts[index]
+				pepper := page.EdgePrompts[index]
 				name := strings.Replace(strings.ToLower(string(pepper.Name)), " ", "", -1)
 				input = strings.Replace(strings.ToLower(input), " ", "", -1)
 
@@ -257,7 +276,7 @@ var getDocumentCmd = &cobra.Command{
 
 			prompt2 := promptui.Select{
 				Label:     "Select an edge",
-				Items:     edgePrompts,
+				Items:     page.EdgePrompts,
 				Templates: templates,
 				Size:      len(page.FromEdges) + len(page.ToEdges),
 				Searcher:  searcher,
@@ -273,7 +292,10 @@ var getDocumentCmd = &cobra.Command{
 				return
 			}
 
-			hash = edgePrompts[i].To
+			// save this hash to this page
+			pages.Set(hash, page, cache.DefaultExpiration)
+
+			hash = page.EdgePrompts[i].To
 
 			// err = ioutil.WriteFile("last-doc.tmp", []byte(hash), 0644)
 			// if err != nil {
