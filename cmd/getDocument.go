@@ -3,7 +3,6 @@ package cmd
 import (
 	"context"
 	"fmt"
-	"io/ioutil"
 	"sort"
 	"strconv"
 	"strings"
@@ -100,7 +99,7 @@ func printDocument(ctx context.Context, api *eos.API, p *Page) {
 	fmt.Println(columnize.SimpleFormat(output))
 	fmt.Println()
 	printContentGroups(p)
-	printEdges(ctx, api, p)
+	// printEdges(ctx, api, p)
 }
 
 type edgeChoice struct {
@@ -114,7 +113,8 @@ type edgeChoice struct {
 
 // Page ...
 type Page struct {
-	Primary   docgraph.Document
+	Primary docgraph.Document
+	// AllEdges  []docgraph.Edge
 	FromEdges []docgraph.Edge
 	ToEdges   []docgraph.Edge
 	Choices   []edgeChoice
@@ -148,6 +148,8 @@ var getDocumentCmd = &cobra.Command{
 			}
 			page.Primary = tempDocument
 
+			printDocument(ctx, api, &page)
+
 			page.FromEdges, err = docgraph.GetEdgesFromDocument(ctx, api, eos.AN(viper.GetString("DAOContract")), page.Primary)
 			if err != nil {
 				fmt.Println("ERROR: Cannot get edges from document: ", err)
@@ -158,9 +160,9 @@ var getDocumentCmd = &cobra.Command{
 				fmt.Println("ERROR: Cannot get edges to document: ", err)
 			}
 
-			printDocument(ctx, api, &page)
-
 			edgePrompts := make([]edgeChoice, len(page.FromEdges)+len(page.ToEdges))
+			// page.AllEdges = append(page.AllEdges, page.FromEdges)
+
 			for i, edge := range page.FromEdges {
 
 				document, err := docgraph.LoadDocument(ctx, api, eos.AN(viper.GetString("DAOContract")), edge.ToNode.String())
@@ -225,12 +227,17 @@ var getDocumentCmd = &cobra.Command{
 				}
 			}
 
+			sort.SliceStable(edgePrompts, func(i, j int) bool {
+				return edgePrompts[i].CreatedDate.Before(edgePrompts[j].CreatedDate.Time)
+			})
+
 			templates := &promptui.SelectTemplates{
 				Label:    "{{ . }}?",
-				Active:   "\U0001F9ED  {{if .Forward}}{{ .Name | cyan }} ---> {{ .ToLabel }} {{else}}{{ .ToLabel }} <--- {{ .Name | cyan }}{{end}}",
-				Inactive: "    {{if .Forward}}{{ .Name | faint }} ---> {{ .ToLabel | faint }} {{else}}{{ .ToLabel | faint}} <--- {{ .Name | faint }}{{end}}",
-				Selected: "\U0001F9ED  {{if .Forward}}{{ .Name | cyan }} ---> {{ .ToLabel }} {{else}}{{ .ToLabel }} <--- {{ .Name | cyan }}{{end}}",
+				Active:   "{{if .Forward}}                                                           [x] {{ printf \"%-12v\" .Name | cyan }} ---> {{ .ToLabel }}{{else}} {{ printf \"%40v\" .ToLabel}} <---{{ printf \"%12v\" .Name | cyan}} [x]{{end}}",
+				Inactive: "{{if .Forward}}                                                           [x] {{ printf \"%-12v\" .Name | faint }} ---> {{ .ToLabel | faint }}{{else}}{{ printf \"%40v\" .ToLabel | faint}} <--- {{ printf \"%12v\" .Name | faint}} [x]{{end}}",
+				Selected: "{{if .Forward}}              {{ printf \"-----------  selected ---------------------> [x] \" | faint}}{{ printf \"%-12v\" .Name | yellow }}{{ printf \"-->\" | yellow}} {{ .ToLabel | yellow}}{{else}}{{ printf \"%40v\" .ToLabel | yellow}} {{ printf \"<---\" | yellow}}{{ printf \"%12v\" .Name | yellow}}{{ printf \" [x] \" | faint}}{{ printf \"<-------  selected -------\" | faint }}{{end}}",
 				Details: `
+
 		--------- Edge Details ----------
 		{{ "Edge Name:" | faint }}	{{ .Name }}
 		{{ "Node Label:" | faint }}	{{ .ToLabel }}
@@ -252,11 +259,14 @@ var getDocumentCmd = &cobra.Command{
 				Label:     "Select an edge",
 				Items:     edgePrompts,
 				Templates: templates,
-				Size:      4,
+				Size:      len(page.FromEdges) + len(page.ToEdges),
 				Searcher:  searcher,
 			}
 
 			i, _, err := prompt2.Run()
+			fmt.Println()
+			fmt.Println("-------------------------------------------------------------------------------------------------")
+			fmt.Println()
 
 			if err != nil {
 				fmt.Printf("Prompt failed %v\n", err)
@@ -264,13 +274,12 @@ var getDocumentCmd = &cobra.Command{
 			}
 
 			hash = edgePrompts[i].To
-			fmt.Printf("You choose number %d: %s\n", i+1, string(edgePrompts[i].Name))
 
-			err = ioutil.WriteFile("last-doc.tmp", []byte(hash), 0644)
-			if err != nil {
-				fmt.Printf("Failed to write temporary file %v\n", err)
-				return
-			}
+			// err = ioutil.WriteFile("last-doc.tmp", []byte(hash), 0644)
+			// if err != nil {
+			// 	fmt.Printf("Failed to write temporary file %v\n", err)
+			// 	return
+			// }
 		}
 	},
 }

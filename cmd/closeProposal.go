@@ -2,18 +2,16 @@ package cmd
 
 import (
 	"context"
-	"fmt"
-	"strconv"
 
 	eos "github.com/eoscanada/eos-go"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 )
 
-func newCloseAction(proposalID uint64) *eos.Action {
+func newCloseAction(proposalID string) *eos.Action {
 	return &eos.Action{
 		Account: eos.AN(viper.GetString("DAOContract")),
-		Name:    eos.ActN("closeprop"),
+		Name:    eos.ActN("closedocprop"),
 		Authorization: []eos.PermissionLevel{
 			{Actor: eos.AN(viper.GetString("DAOUser")), Permission: eos.PN("active")},
 		},
@@ -22,23 +20,23 @@ func newCloseAction(proposalID uint64) *eos.Action {
 }
 
 var closeCmd = &cobra.Command{
-	Use:   "close [proposal id]",
+	Use:   "close [hash]",
 	Short: "close a proposal",
 	Long:  "close a proposal that is linked to a ballot where the voting period has ended",
 	Args:  cobra.RangeArgs(1, 1),
 	Run: func(cmd *cobra.Command, args []string) {
 
-		proposalID, err := strconv.ParseUint(args[0], 10, 64)
-		if err != nil {
-			fmt.Println("Error reading proposal_id. ", err)
-			return
-		}
+		// proposalID, err := strconv.ParseUint(args[0], 10, 64)
+		// if err != nil {
+		// 	fmt.Println("Error reading proposal_id. ", err)
+		// 	return
+		// }
 
-		pushEOSCActions(context.Background(), getAPI(), newCloseAction(uint64(proposalID)))
+		pushEOSCActions(context.Background(), getAPI(), newCloseAction(args[0]))
 	},
 }
 
 func init() {
 	RootCmd.AddCommand(closeCmd)
-	closeCmd.Flags().IntP("proposal_id", "p", -1, "proposal ID to be closed")
+	// closeCmd.Flags().IntP("proposal_id", "p", -1, "proposal ID to be closed")
 }
