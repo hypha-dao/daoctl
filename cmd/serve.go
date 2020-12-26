@@ -14,6 +14,7 @@ import (
 	"github.com/eoscanada/eos-go"
 	"github.com/hypha-dao/daoctl/hyperion"
 	"github.com/hypha-dao/daoctl/models"
+	"github.com/hypha-dao/document-graph/docgraph"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"github.com/spf13/cobra"
@@ -76,10 +77,10 @@ var serveCmd = &cobra.Command{
 			Help: "Total amount of HUSD tokens circulating",
 		})
 
-		// memberCount := prometheus.NewGauge(prometheus.GaugeOpts{
-		// 	Name: "member_count",
-		// 	Help: "Total number of members",
-		// })
+		documentCount := prometheus.NewGauge(prometheus.GaugeOpts{
+			Name: "document_count",
+			Help: "Total number of documents",
+		})
 
 		// applicantCount := prometheus.NewGauge(prometheus.GaugeOpts{
 		// 	Name: "applicant_count",
@@ -123,7 +124,12 @@ var serveCmd = &cobra.Command{
 					fmt.Println("Retrieved an error retrieving HUSD supply: ", err)
 				}
 
-				// memberCount.Set(float64(len(models.Members(ctx, api))))
+				docs, err := docgraph.GetAllDocuments(ctx, api, eos.AN(viper.GetString("DAOContract")))
+				if err != nil {
+					panic(fmt.Errorf("cannot get all documents: %v", err))
+				}
+				documentCount.Set(float64(len(docs)))
+
 				// applicantCount.Set(float64(len(models.Applicants(ctx, api))))
 
 				query := hyperion.NewQuery("castvote", viper.GetString("TelosDecideContract"), "")
@@ -162,7 +168,7 @@ var serveCmd = &cobra.Command{
 		r.MustRegister(hyphaSupply)
 		r.MustRegister(hvoiceSupply)
 		r.MustRegister(husdSupply)
-		// r.MustRegister(memberCount)
+		r.MustRegister(documentCount)
 		// r.MustRegister(applicantCount)
 		r.MustRegister(voteEventCount)
 		r.MustRegister(daoEventCount)
