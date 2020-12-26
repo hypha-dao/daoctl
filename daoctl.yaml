@@ -3,7 +3,7 @@ AssetsAsFloat: true
 DAOContract: dao1.hypha
 RootNode: 0f374e7a9d8ab17f172f8c478744cdd4016497e15229616f2ffd04d8002ef64a
 Treasury:
-  TokenContract: husd1.hypha
+  TokenContract: token1.hypha
   Symbol: HUSD
   Contract: bank1.hypha
   EthUSDTContract: 0xdac17f958d2ee523a2206206994597c13d831ec7
@@ -13,5 +13,8 @@ TelosDecideContract: td1.hypha
 DAOUser: mem5.hypha
 HyperionEndpoint: https://testnet.telosusa.io/v2
 BallotPrefix: hypha1.....
-RewardToken.Symbol: HYPHA
+RewardToken:
+  Contract: token1.hypha
+  Symbol: HYPHA
 VoteTokenSymbol: HVOICE
+ServePort: 8889

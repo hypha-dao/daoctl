@@ -125,6 +125,95 @@ func (p *Page) getKey() string {
 	return p.Primary.Hash.String()
 }
 
+func getPage(ctx context.Context, api *eos.API, pageCache, documentCache *cache.Cache, contract eos.AccountName, hash string) Page {
+	pager, found := pageCache.Get(hash)
+	if found {
+		return pager.(Page)
+	}
+
+	var err error
+	page := Page{}
+	page.Primary = getDocument(ctx, api, documentCache, contract, hash)
+
+	page.FromEdges, err = docgraph.GetEdgesFromDocument(ctx, api, contract, page.Primary)
+	if err != nil {
+		fmt.Println("ERROR: Cannot get edges from document: ", err)
+	}
+
+	page.ToEdges, err = docgraph.GetEdgesToDocument(ctx, api, contract, page.Primary)
+	if err != nil {
+		fmt.Println("ERROR: Cannot get edges to document: ", err)
+	}
+
+	page.EdgePrompts = make([]edgeChoice, len(page.FromEdges)+len(page.ToEdges))
+
+	for i, edge := range page.FromEdges {
+
+		document := getDocument(ctx, api, documentCache, contract, edge.ToNode.String())
+
+		typeLabel := "Unknown"
+		documentType, _ := document.GetContent("type")
+		if documentType != nil {
+			// if isSkipped(documentType.String()) {
+			// 	continue
+			// }
+			typeLabel = documentType.String()
+		}
+
+		nodeLabel := "Unknown"
+		documentLabel, _ := document.GetContent("node_label")
+		if documentLabel != nil {
+			nodeLabel = documentLabel.String()
+		}
+
+		page.EdgePrompts[i] = edgeChoice{
+			Name:        edge.EdgeName,
+			Forward:     true,
+			To:          edge.ToNode.String(),
+			ToType:      typeLabel,
+			ToLabel:     nodeLabel,
+			CreatedDate: edge.CreatedDate,
+		}
+	}
+
+	for i, edge := range page.ToEdges {
+
+		document := getDocument(ctx, api, documentCache, contract, edge.FromNode.String())
+
+		typeLabel := "Unknown"
+		documentType, _ := document.GetContent("type")
+		if documentType != nil {
+			// if isSkipped(documentType.String()) {
+			// 	continue
+			// }
+			typeLabel = documentType.String()
+		}
+
+		nodeLabel := "Unknown"
+		documentLabel, _ := document.GetContent("node_label")
+		if documentLabel != nil {
+			nodeLabel = documentLabel.String()
+		}
+
+		page.EdgePrompts[i+len(page.FromEdges)] = edgeChoice{
+			Name:        edge.EdgeName,
+			Forward:     false,
+			To:          edge.FromNode.String(),
+			ToType:      typeLabel,
+			ToLabel:     nodeLabel,
+			CreatedDate: edge.CreatedDate,
+		}
+	}
+
+	sort.SliceStable(page.EdgePrompts, func(i, j int) bool {
+		return page.EdgePrompts[i].CreatedDate.Before(page.EdgePrompts[j].CreatedDate.Time)
+	})
+
+	pageCache.Set(page.Primary.Hash.String(), page, cache.DefaultExpiration)
+
+	return page
+}
+
 func getDocument(ctx context.Context, api *eos.API, c *cache.Cache, contract eos.AccountName, hash string) docgraph.Document {
 
 	documenter, found := c.Get(hash)
@@ -139,6 +228,21 @@ func getDocument(ctx context.Context, api *eos.API, c *cache.Cache, contract eos
 	c.Set(document.Hash.String(), document, cache.DefaultExpiration)
 
 	return document
+}
+
+func loadCache(ctx context.Context, api *eos.API, pages, documents *cache.Cache, contract eos.AccountName, startingNode string) {
+
+	go func() {
+		page := getPage(ctx, api, pages, documents, contract, startingNode)
+
+		for _, edge := range page.ToEdges {
+			getPage(ctx, api, pages, documents, contract, edge.ToNode.String())
+		}
+
+		for _, edge := range page.FromEdges {
+			getPage(ctx, api, pages, documents, contract, edge.ToNode.String())
+		}
+	}()
 }
 
 var getDocumentCmd = &cobra.Command{
@@ -159,102 +263,22 @@ var getDocumentCmd = &cobra.Command{
 		}
 
 		var page Page
-		var document docgraph.Document
-		var err error
 		pages := cache.New(5*time.Minute, 10*time.Minute)
 		documents := cache.New(5*time.Minute, 10*time.Minute)
 
 		for {
-			pager, found := pages.Get(hash)
-			if found {
-				page = pager.(Page)
-			} else {
-				page = Page{}
 
-				page.Primary = getDocument(ctx, api, documents, contract, hash)
+			page = getPage(ctx, api, pages, documents, contract, hash)
 
-				page.FromEdges, err = docgraph.GetEdgesFromDocument(ctx, api, contract, page.Primary)
-				if err != nil {
-					fmt.Println("ERROR: Cannot get edges from document: ", err)
-				}
-
-				page.ToEdges, err = docgraph.GetEdgesToDocument(ctx, api, contract, page.Primary)
-				if err != nil {
-					fmt.Println("ERROR: Cannot get edges to document: ", err)
-				}
-
-				page.EdgePrompts = make([]edgeChoice, len(page.FromEdges)+len(page.ToEdges))
-
-				for i, edge := range page.FromEdges {
-
-					document = getDocument(ctx, api, documents, contract, edge.ToNode.String())
-
-					typeLabel := "Unknown"
-					documentType, _ := document.GetContent("type")
-					if documentType != nil {
-						// if isSkipped(documentType.String()) {
-						// 	continue
-						// }
-						typeLabel = documentType.String()
-					}
-
-					nodeLabel := "Unknown"
-					documentLabel, _ := document.GetContent("node_label")
-					if documentLabel != nil {
-						nodeLabel = documentLabel.String()
-					}
-
-					page.EdgePrompts[i] = edgeChoice{
-						Name:        edge.EdgeName,
-						Forward:     true,
-						To:          edge.ToNode.String(),
-						ToType:      typeLabel,
-						ToLabel:     nodeLabel,
-						CreatedDate: edge.CreatedDate,
-					}
-				}
-
-				for i, edge := range page.ToEdges {
-
-					document = getDocument(ctx, api, documents, contract, edge.FromNode.String())
-
-					typeLabel := "Unknown"
-					documentType, _ := document.GetContent("type")
-					if documentType != nil {
-						// if isSkipped(documentType.String()) {
-						// 	continue
-						// }
-						typeLabel = documentType.String()
-					}
-
-					nodeLabel := "Unknown"
-					documentLabel, _ := document.GetContent("node_label")
-					if documentLabel != nil {
-						nodeLabel = documentLabel.String()
-					}
-
-					page.EdgePrompts[i+len(page.FromEdges)] = edgeChoice{
-						Name:        edge.EdgeName,
-						Forward:     false,
-						To:          edge.FromNode.String(),
-						ToType:      typeLabel,
-						ToLabel:     nodeLabel,
-						CreatedDate: edge.CreatedDate,
-					}
-				}
-
-				sort.SliceStable(page.EdgePrompts, func(i, j int) bool {
-					return page.EdgePrompts[i].CreatedDate.Before(page.EdgePrompts[j].CreatedDate.Time)
-				})
-			}
+			loadCache(ctx, api, pages, documents, contract, hash)
 
 			printDocument(ctx, api, &page)
 
 			templates := &promptui.SelectTemplates{
 				Label:    "{{ . }}?",
-				Active:   "{{if .Forward}}                                                           [x] {{ printf \"%-12v\" .Name | cyan }} ---> {{ .ToLabel }}{{else}} {{ printf \"%40v\" .ToLabel}} <---{{ printf \"%12v\" .Name | cyan}} [x]{{end}}",
-				Inactive: "{{if .Forward}}                                                           [x] {{ printf \"%-12v\" .Name | faint }} ---> {{ .ToLabel | faint }}{{else}}{{ printf \"%40v\" .ToLabel | faint}} <--- {{ printf \"%12v\" .Name | faint}} [x]{{end}}",
-				Selected: "{{if .Forward}}              {{ printf \"-----------  selected ---------------------> [x] \" | faint}}{{ printf \"%-12v\" .Name | yellow }}{{ printf \"-->\" | yellow}} {{ .ToLabel | yellow}}{{else}}{{ printf \"%40v\" .ToLabel | yellow}} {{ printf \"<---\" | yellow}}{{ printf \"%12v\" .Name | yellow}}{{ printf \" [x] \" | faint}}{{ printf \"<-------  selected -------\" | faint }}{{end}}",
+				Active:   "{{if .Forward}}                                                           [x] {{ printf \" ---> \"}}{{ printf \"%-12v\" .Name | cyan }} ---> {{ .ToLabel }}{{else}} {{ printf \"%33v\" .ToLabel}} --->{{ printf \"%12v\" .Name | cyan}} ---->  [x]{{end}}",
+				Inactive: "{{if .Forward}}                                                           [x] {{ printf \" ---> \"}}{{ printf \"%-12v\" .Name | faint }} ---> {{ .ToLabel | faint }}{{else}}{{ printf \"%33v\" .ToLabel | faint}} ---> {{ printf \"%12v\" .Name | faint}} ---->  [x]{{end}}",
+				Selected: "{{if .Forward}}              {{ printf \"-----------  selected ---------------------> [x] \" | faint}}{{ printf \" ---> \"}}{{ printf \"%-12v\" .Name | yellow }}{{ printf \"--->\" | yellow}} {{ .ToLabel | yellow}}{{else}}{{ printf \"%33v\" .ToLabel | yellow}} {{ printf \"--->\" | yellow}}{{ printf \"%12v\" .Name | yellow}}{{ printf \" [x] \" | faint}}{{ printf \"<-------  selected -------\" | faint }}{{end}}",
 				Details: `
 
 		--------- Edge Details ----------
@@ -291,9 +315,6 @@ var getDocumentCmd = &cobra.Command{
 				fmt.Printf("Prompt failed %v\n", err)
 				return
 			}
-
-			// save this hash to this page
-			pages.Set(hash, page, cache.DefaultExpiration)
 
 			hash = page.EdgePrompts[i].To
 

@@ -76,15 +76,15 @@ var serveCmd = &cobra.Command{
 			Help: "Total amount of HUSD tokens circulating",
 		})
 
-		memberCount := prometheus.NewGauge(prometheus.GaugeOpts{
-			Name: "member_count",
-			Help: "Total number of members",
-		})
+		// memberCount := prometheus.NewGauge(prometheus.GaugeOpts{
+		// 	Name: "member_count",
+		// 	Help: "Total number of members",
+		// })
 
-		applicantCount := prometheus.NewGauge(prometheus.GaugeOpts{
-			Name: "applicant_count",
-			Help: "Total number of open applications",
-		})
+		// applicantCount := prometheus.NewGauge(prometheus.GaugeOpts{
+		// 	Name: "applicant_count",
+		// 	Help: "Total number of open applications",
+		// })
 
 		voteEventCount := prometheus.NewGauge(prometheus.GaugeOpts{
 			Name: "vote_events",
@@ -123,8 +123,8 @@ var serveCmd = &cobra.Command{
 					fmt.Println("Retrieved an error retrieving HUSD supply: ", err)
 				}
 
-				memberCount.Set(float64(len(models.Members(ctx, api))))
-				applicantCount.Set(float64(len(models.Applicants(ctx, api))))
+				// memberCount.Set(float64(len(models.Members(ctx, api))))
+				// applicantCount.Set(float64(len(models.Applicants(ctx, api))))
 
 				query := hyperion.NewQuery("castvote", viper.GetString("TelosDecideContract"), "")
 				query.After = time.Now().AddDate(0, 0, -1)
@@ -162,8 +162,8 @@ var serveCmd = &cobra.Command{
 		r.MustRegister(hyphaSupply)
 		r.MustRegister(hvoiceSupply)
 		r.MustRegister(husdSupply)
-		r.MustRegister(memberCount)
-		r.MustRegister(applicantCount)
+		// r.MustRegister(memberCount)
+		// r.MustRegister(applicantCount)
 		r.MustRegister(voteEventCount)
 		r.MustRegister(daoEventCount)
 		http.Handle("/metrics", promhttp.HandlerFor(r, promhttp.HandlerOpts{}))

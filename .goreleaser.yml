@@ -36,18 +36,18 @@ changelog:
     exclude:
     - '^docs:'
     - '^test:'
-# dockers:
-#   -
-#     goos: linux
-#     goarch: amd64
-#     goarm: ''
-#     binaries:
-#     - daoctl
-#     image_templates:
-#     - "dsmaxds/daoctl:latest"
-#     dockerfile: Dockerfile
-#     extra_files:
-#     - daoctl.yaml
-# signs:
-#   artifacts: checksum
-#   cmd: gpg2
+dockers:
+  -
+    goos: linux
+    goarch: amd64
+    goarm: ''
+    binaries:
+    - daoctl
+    image_templates:
+    - "dsmaxds/daoctl:latest"
+    dockerfile: Dockerfile
+    extra_files:
+    - daoctl.yaml
+signs:
+  artifacts: checksum
+  cmd: gpg2
