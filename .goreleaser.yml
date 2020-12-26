@@ -47,6 +47,6 @@ dockers:
     dockerfile: Dockerfile
     extra_files:
     - daoctl.yaml
-signs:
-  artifacts: checksum
-  cmd: gpg2
+# signs:
+#   artifacts: checksum
+#   cmd: gpg2
