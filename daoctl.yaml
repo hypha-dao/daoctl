@@ -17,4 +17,4 @@ RewardToken:
   Contract: token1.hypha
   Symbol: HYPHA
 VoteTokenSymbol: HVOICE
-ServePort: 8889
+ServePort: 8085
