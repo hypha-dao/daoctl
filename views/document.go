@@ -22,13 +22,13 @@ func docHeader() *simpletable.Header {
 }
 
 func isSkipped(label string) bool {
-	skipLabels := []string{"period"}
+	// skipLabels := []string{"period"}
 
-	for _, skipLabel := range skipLabels {
-		if label == skipLabel {
-			return true
-		}
-	}
+	// for _, skipLabel := range skipLabels {
+	// 	if label == skipLabel {
+	// 		return true
+	// 	}
+	// }
 	return false
 }
 
@@ -78,9 +78,6 @@ func DocTable(docs []docgraph.Document) *simpletable.Table {
 		typeLabel := "Unknown"
 		documentType, _ := doc.GetContent("type")
 		if documentType != nil {
-			if isSkipped(documentType.String()) {
-				continue
-			}
 			typeLabel = documentType.String()
 		}
 
@@ -94,7 +91,7 @@ func DocTable(docs []docgraph.Document) *simpletable.Table {
 			{Align: simpletable.AlignRight, Text: strconv.Itoa(int(doc.ID))},
 			{Align: simpletable.AlignRight, Text: nodeLabel},
 			{Align: simpletable.AlignRight, Text: typeLabel},
-			{Align: simpletable.AlignRight, Text: doc.CreatedDate.Time.Format("2006 Jan 02")},
+			{Align: simpletable.AlignRight, Text: doc.CreatedDate.Time.Format("2006 Jan 02 15:04:05")},
 			{Align: simpletable.AlignRight, Text: string(doc.Creator)},
 			{Align: simpletable.AlignRight, Text: doc.Hash.String()},
 			// {Align: simpletable.AlignRight, Text: documentString},

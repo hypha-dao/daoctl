@@ -1,6 +1,6 @@
-EosioEndpoint: https://test.telos.kitchen
+EosioEndpoint: https://testnet.telos.caleos.io
 AssetsAsFloat: true
-DAOContract: dao1.hypha
+DAOContract: dao.hypha
 Treasury:
   TokenContract: husd.hypha
   Symbol: HUSD

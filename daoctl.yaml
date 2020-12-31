@@ -1,20 +1,20 @@
 EosioEndpoint: https://testnet.telos.caleos.io
 AssetsAsFloat: true
-DAOContract: dao1.hypha
+DAOContract: dao.hypha
 RootNode: 0f374e7a9d8ab17f172f8c478744cdd4016497e15229616f2ffd04d8002ef64a
 Treasury:
-  TokenContract: token1.hypha
+  TokenContract: husd.hypha
   Symbol: HUSD
-  Contract: bank1.hypha
+  Contract: bank.hypha
   EthUSDTContract: 0xdac17f958d2ee523a2206206994597c13d831ec7
   EthUSDTAddress: 0xC20f453a4B4995CA032570f212988F4978B35dDd
   BtcAddress: 35hfgfaUouzYixTUDV6CFqMiTSZcuNtTf9
-TelosDecideContract: td1.hypha
-DAOUser: mem5.hypha
+TelosDecideContract: trailservice
+DAOUser: johnnyhypha1
 HyperionEndpoint: https://testnet.telosusa.io/v2
 BallotPrefix: hypha1.....
 RewardToken:
-  Contract: token1.hypha
+  Contract: token.hypha
   Symbol: HYPHA
 VoteTokenSymbol: HVOICE
 ServePort: 8085

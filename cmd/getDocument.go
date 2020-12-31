@@ -3,6 +3,8 @@ package cmd
 import (
 	"context"
 	"fmt"
+	"image"
+	"log"
 	"sort"
 	"strconv"
 	"strings"
@@ -10,6 +12,7 @@ import (
 
 	"github.com/alexeyco/simpletable"
 	"github.com/eoscanada/eos-go"
+	"github.com/goccy/go-graphviz"
 	"github.com/hypha-dao/daoctl/views"
 	"github.com/hypha-dao/document-graph/docgraph"
 	"github.com/manifoldco/promptui"
@@ -95,7 +98,7 @@ func printDocument(ctx context.Context, api *eos.API, p *Page) {
 		fmt.Sprintf("ID|%v", strconv.Itoa(int(p.Primary.ID))),
 		fmt.Sprintf("Hash|%v", p.Primary.Hash.String()),
 		fmt.Sprintf("Creator|%v", string(p.Primary.Creator)),
-		fmt.Sprintf("Created Date|%v", p.Primary.CreatedDate.Time.Format("2006 Jan 02")),
+		fmt.Sprintf("Created Date|%v", p.Primary.CreatedDate.Time.Format("2006 Jan 02 15:04:05")),
 	}
 
 	fmt.Println(columnize.SimpleFormat(output))
@@ -119,10 +122,27 @@ type Page struct {
 	FromEdges   []docgraph.Edge
 	ToEdges     []docgraph.Edge
 	EdgePrompts []edgeChoice
+	Graph       image.Image
 }
 
 func (p *Page) getKey() string {
 	return p.Primary.Hash.String()
+}
+
+func getLabel(d *docgraph.Document) string {
+	documentLabel, _ := d.GetContent("node_label")
+	if documentLabel != nil {
+		return documentLabel.String()
+	}
+	return "unlabeled"
+}
+
+func getType(d *docgraph.Document) string {
+	documentType, _ := d.GetContent("type")
+	if documentType != nil {
+		return documentType.String()
+	}
+	return "untyped"
 }
 
 func getPage(ctx context.Context, api *eos.API, pageCache, documentCache *cache.Cache, contract eos.AccountName, hash string) Page {
@@ -134,6 +154,24 @@ func getPage(ctx context.Context, api *eos.API, pageCache, documentCache *cache.
 	var err error
 	page := Page{}
 	page.Primary = getDocument(ctx, api, documentCache, contract, hash)
+
+	var g *graphviz.Graphviz
+	g = graphviz.New()
+	graph, err := g.Graph()
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer func() {
+		if err := graph.Close(); err != nil {
+			log.Fatal(err)
+		}
+		g.Close()
+	}()
+
+	primaryNode, err := graph.CreateNode(getLabel(&page.Primary))
+	if err != nil {
+		log.Fatal(err)
+	}
 
 	page.FromEdges, err = docgraph.GetEdgesFromDocument(ctx, api, contract, page.Primary)
 	if err != nil {
@@ -151,27 +189,23 @@ func getPage(ctx context.Context, api *eos.API, pageCache, documentCache *cache.
 
 		document := getDocument(ctx, api, documentCache, contract, edge.ToNode.String())
 
-		typeLabel := "Unknown"
-		documentType, _ := document.GetContent("type")
-		if documentType != nil {
-			// if isSkipped(documentType.String()) {
-			// 	continue
-			// }
-			typeLabel = documentType.String()
+		secondaryNode, err := graph.CreateNode(getLabel(&document))
+		if err != nil {
+			log.Fatal(err)
 		}
 
-		nodeLabel := "Unknown"
-		documentLabel, _ := document.GetContent("node_label")
-		if documentLabel != nil {
-			nodeLabel = documentLabel.String()
+		spEdge, err := graph.CreateEdge(string(edge.EdgeName), secondaryNode, primaryNode)
+		if err != nil {
+			log.Fatal(err)
 		}
+		spEdge.SetLabel(string(edge.EdgeName))
 
 		page.EdgePrompts[i] = edgeChoice{
 			Name:        edge.EdgeName,
 			Forward:     true,
 			To:          edge.ToNode.String(),
-			ToType:      typeLabel,
-			ToLabel:     nodeLabel,
+			ToType:      getType(&document),
+			ToLabel:     getLabel(&document),
 			CreatedDate: edge.CreatedDate,
 		}
 	}
@@ -180,29 +214,30 @@ func getPage(ctx context.Context, api *eos.API, pageCache, documentCache *cache.
 
 		document := getDocument(ctx, api, documentCache, contract, edge.FromNode.String())
 
-		typeLabel := "Unknown"
-		documentType, _ := document.GetContent("type")
-		if documentType != nil {
-			// if isSkipped(documentType.String()) {
-			// 	continue
-			// }
-			typeLabel = documentType.String()
+		secondaryNode, err := graph.CreateNode(getLabel(&document))
+		if err != nil {
+			log.Fatal(err)
 		}
 
-		nodeLabel := "Unknown"
-		documentLabel, _ := document.GetContent("node_label")
-		if documentLabel != nil {
-			nodeLabel = documentLabel.String()
+		psEdge, err := graph.CreateEdge(string(edge.EdgeName), primaryNode, secondaryNode)
+		if err != nil {
+			log.Fatal(err)
 		}
+		psEdge.SetLabel(string(edge.EdgeName))
 
 		page.EdgePrompts[i+len(page.FromEdges)] = edgeChoice{
 			Name:        edge.EdgeName,
 			Forward:     false,
 			To:          edge.FromNode.String(),
-			ToType:      typeLabel,
-			ToLabel:     nodeLabel,
+			ToType:      getType(&document),
+			ToLabel:     getLabel(&document),
 			CreatedDate: edge.CreatedDate,
 		}
+	}
+
+	page.Graph, err = g.RenderImage(graph)
+	if err != nil {
+		log.Fatal(err)
 	}
 
 	sort.SliceStable(page.EdgePrompts, func(i, j int) bool {
@@ -223,7 +258,8 @@ func getDocument(ctx context.Context, api *eos.API, c *cache.Cache, contract eos
 
 	document, err := docgraph.LoadDocument(ctx, api, contract, hash)
 	if err != nil {
-		panic("Document not found: " + hash)
+		log.Println("Document not found: " + hash)
+		return docgraph.Document{}
 	}
 	c.Set(document.Hash.String(), document, cache.DefaultExpiration)
 
@@ -298,6 +334,32 @@ var getDocumentCmd = &cobra.Command{
 				return strings.Contains(name, input)
 			}
 
+			// prompt := promptui.Prompt{
+			// 	Label:     "Save Image",
+			// 	IsConfirm: true,
+			// }
+
+			// saveImage, err := prompt.Run()
+
+			// fmt.Println("You selected: " + saveImage)
+			// if err != nil {
+			// 	fmt.Printf("Prompt failed %v\n", err)
+			// 	return
+			// }
+
+			// if saveImage == "y" {
+			// 	f, err := os.Create(page.Primary.Hash.String() + ".png")
+			// 	if err != nil {
+			// 		panic(err)
+			// 	}
+			// 	defer f.Close()
+
+			// 	err = png.Encode(f, page.Graph)
+			// 	if err != nil {
+			// 		panic(err)
+			// 	}
+			// }
+
 			prompt2 := promptui.Select{
 				Label:     "Select an edge",
 				Items:     page.EdgePrompts,
@@ -307,14 +369,14 @@ var getDocumentCmd = &cobra.Command{
 			}
 
 			i, _, err := prompt2.Run()
-			fmt.Println()
-			fmt.Println("-------------------------------------------------------------------------------------------------")
-			fmt.Println()
-
 			if err != nil {
 				fmt.Printf("Prompt failed %v\n", err)
 				return
 			}
+
+			fmt.Println()
+			fmt.Println("-------------------------------------------------------------------------------------------------")
+			fmt.Println()
 
 			hash = page.EdgePrompts[i].To
 
