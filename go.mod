@@ -11,12 +11,7 @@ require (
 	github.com/bronze1man/go-yaml2json v0.0.0-20150129175009-f6f64b738964
 	github.com/eoscanada/eos-go v0.9.1-0.20200805141443-a9d5402a7bc5
 	github.com/eoscanada/eosc v1.4.0
-	github.com/go-echarts/go-echarts v1.0.0
-	github.com/goccy/go-graphviz v0.0.9
-	github.com/hypha-dao/dao-contracts/dao-go v0.0.0-20201205184403-aa95d64cb815 // indirect
-	github.com/hypha-dao/dao-go v0.0.0-20201114163733-815f68275eca
 	github.com/hypha-dao/document-graph/docgraph v0.0.0-20201205184845-8c83c9c9a989
-	github.com/k0kubun/go-ansi v0.0.0-20180517002512-3bf9e2903213
 	github.com/leekchan/accounting v1.0.0
 	github.com/manifoldco/promptui v0.8.0
 	github.com/mitchellh/go-homedir v1.1.0
@@ -24,7 +19,6 @@ require (
 	github.com/pkg/errors v0.9.1
 	github.com/prometheus/client_golang v1.8.0
 	github.com/ryanuber/columnize v2.1.2+incompatible
-	github.com/schollz/progressbar/v3 v3.7.2
 	github.com/spf13/cobra v1.1.1
 	github.com/spf13/pflag v1.0.5
 	github.com/spf13/viper v1.7.1

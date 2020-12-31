@@ -12,7 +12,6 @@ import (
 
 	"github.com/alexeyco/simpletable"
 	"github.com/eoscanada/eos-go"
-	"github.com/goccy/go-graphviz"
 	"github.com/hypha-dao/daoctl/views"
 	"github.com/hypha-dao/document-graph/docgraph"
 	"github.com/manifoldco/promptui"
@@ -155,23 +154,23 @@ func getPage(ctx context.Context, api *eos.API, pageCache, documentCache *cache.
 	page := Page{}
 	page.Primary = getDocument(ctx, api, documentCache, contract, hash)
 
-	var g *graphviz.Graphviz
-	g = graphviz.New()
-	graph, err := g.Graph()
-	if err != nil {
-		log.Fatal(err)
-	}
-	defer func() {
-		if err := graph.Close(); err != nil {
-			log.Fatal(err)
-		}
-		g.Close()
-	}()
+	// var g *graphviz.Graphviz
+	// g = graphviz.New()
+	// graph, err := g.Graph()
+	// if err != nil {
+	// 	log.Fatal(err)
+	// }
+	// defer func() {
+	// 	if err := graph.Close(); err != nil {
+	// 		log.Fatal(err)
+	// 	}
+	// 	g.Close()
+	// }()
 
-	primaryNode, err := graph.CreateNode(getLabel(&page.Primary))
-	if err != nil {
-		log.Fatal(err)
-	}
+	// primaryNode, err := graph.CreateNode(getLabel(&page.Primary))
+	// if err != nil {
+	// 	log.Fatal(err)
+	// }
 
 	page.FromEdges, err = docgraph.GetEdgesFromDocument(ctx, api, contract, page.Primary)
 	if err != nil {
@@ -189,16 +188,16 @@ func getPage(ctx context.Context, api *eos.API, pageCache, documentCache *cache.
 
 		document := getDocument(ctx, api, documentCache, contract, edge.ToNode.String())
 
-		secondaryNode, err := graph.CreateNode(getLabel(&document))
-		if err != nil {
-			log.Fatal(err)
-		}
+		// secondaryNode, err := graph.CreateNode(getLabel(&document))
+		// if err != nil {
+		// 	log.Fatal(err)
+		// }
 
-		spEdge, err := graph.CreateEdge(string(edge.EdgeName), secondaryNode, primaryNode)
-		if err != nil {
-			log.Fatal(err)
-		}
-		spEdge.SetLabel(string(edge.EdgeName))
+		// spEdge, err := graph.CreateEdge(string(edge.EdgeName), secondaryNode, primaryNode)
+		// if err != nil {
+		// 	log.Fatal(err)
+		// }
+		// spEdge.SetLabel(string(edge.EdgeName))
 
 		page.EdgePrompts[i] = edgeChoice{
 			Name:        edge.EdgeName,
@@ -214,16 +213,16 @@ func getPage(ctx context.Context, api *eos.API, pageCache, documentCache *cache.
 
 		document := getDocument(ctx, api, documentCache, contract, edge.FromNode.String())
 
-		secondaryNode, err := graph.CreateNode(getLabel(&document))
-		if err != nil {
-			log.Fatal(err)
-		}
+		// secondaryNode, err := graph.CreateNode(getLabel(&document))
+		// if err != nil {
+		// 	log.Fatal(err)
+		// }
 
-		psEdge, err := graph.CreateEdge(string(edge.EdgeName), primaryNode, secondaryNode)
-		if err != nil {
-			log.Fatal(err)
-		}
-		psEdge.SetLabel(string(edge.EdgeName))
+		// psEdge, err := graph.CreateEdge(string(edge.EdgeName), primaryNode, secondaryNode)
+		// if err != nil {
+		// 	log.Fatal(err)
+		// }
+		// psEdge.SetLabel(string(edge.EdgeName))
 
 		page.EdgePrompts[i+len(page.FromEdges)] = edgeChoice{
 			Name:        edge.EdgeName,
@@ -235,10 +234,10 @@ func getPage(ctx context.Context, api *eos.API, pageCache, documentCache *cache.
 		}
 	}
 
-	page.Graph, err = g.RenderImage(graph)
-	if err != nil {
-		log.Fatal(err)
-	}
+	// page.Graph, err = g.RenderImage(graph)
+	// if err != nil {
+	// 	log.Fatal(err)
+	// }
 
 	sort.SliceStable(page.EdgePrompts, func(i, j int) bool {
 		return page.EdgePrompts[i].CreatedDate.Before(page.EdgePrompts[j].CreatedDate.Time)
