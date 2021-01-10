@@ -44,6 +44,7 @@ dockers:
     - daoctl
     image_templates:
     - "dsmaxds/daoctl:latest"
+    - "dsmaxds/daoctl:{{ .Tag }}"
     dockerfile: Dockerfile
     extra_files:
     - daoctl.yaml
