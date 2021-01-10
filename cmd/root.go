@@ -5,6 +5,7 @@ import (
 	"context"
 	"encoding/hex"
 	"fmt"
+	"log"
 	"os"
 	"strings"
 
@@ -34,6 +35,11 @@ HyperionEndpoint: https://mainnet.telosusa.io/v2
 BallotPrefix: hypha1.....
 VoteTokenSymbol: HVOICE
 ServePort: 8085
+ScrapeInterval: 1m 
+SeedsExchangeContract: tlosto.seeds
+EscrowContract: escrow.seeds
+HyphaSeedsAccount: hypha.seeds
+SeedsTokenContract: token.seeds
 `)
 
 // RootCmd represents the base command when called without any subcommands
@@ -92,7 +98,6 @@ func initConfig() {
 			os.Exit(1)
 		}
 
-		// Search config in home directory with name ".daoctl" (without extension).
 		viper.SetConfigType("yaml")
 		viper.AddConfigPath(".")
 		viper.AddConfigPath("./configs")
@@ -102,7 +107,7 @@ func initConfig() {
 
 	// If a config file is found, read it in.
 	if err := viper.ReadInConfig(); err == nil {
-		fmt.Println("Using config file:", viper.ConfigFileUsed())
+		log.Println("Using config file:", viper.ConfigFileUsed())
 	} else {
 		viper.ReadConfig(bytes.NewBuffer(yamlDefault))
 	}

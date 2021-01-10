@@ -105,8 +105,8 @@ func GetHvoiceSupply(ctx context.Context, api *eos.API) (*eos.Asset, error) {
 	request.Scope = viper.GetString("TelosDecideContract")
 	request.Table = "treasuries"
 	request.Limit = 1
-	request.LowerBound = string("HVOICE")
-	request.UpperBound = string("HVOICE")
+	request.LowerBound = viper.GetString("VoteTokenSymbol")
+	request.UpperBound = viper.GetString("VoteTokenSymbol")
 	request.JSON = true
 	response, err := api.GetTableRows(ctx, request)
 	if err != nil {

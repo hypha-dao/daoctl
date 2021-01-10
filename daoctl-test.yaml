@@ -5,12 +5,17 @@ Treasury:
   TokenContract: husd.hypha
   Symbol: HUSD
   Contract: bank.hypha
-  EthUSDTContract: 0xdac17f958d2ee523a2206206994597c13d831ec7
-  EthUSDTAddress: 0xC20f453a4B4995CA032570f212988F4978B35dDd
-  BtcAddress: 35hfgfaUouzYixTUDV6CFqMiTSZcuNtTf9
 TelosDecideContract: trailservice
+SeedsTokenContract: token.seeds
 DAOUser: johnnyhypha1
 HyperionEndpoint: https://testnet.telosusa.io/v2
 BallotPrefix: hypha1.....
-RewardToken.Symbol: HYPHA
+RewardToken:
+  Symbol: HYPHA
+  Contract: token.hypha
 VoteTokenSymbol: HVOICE
+ServePort: 8085
+ScrapeInterval: 1m 
+SeedsExchangeContract: tlosto.seeds
+EscrowContract: escrow.seeds
+HyphaSeedsAccount: hypha.seeds
