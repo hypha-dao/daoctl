@@ -265,7 +265,11 @@ var serveCmd = &cobra.Command{
 
 				hypha, err := getTokenSupply(ctx, api, viper.GetString("RewardToken.Contract"), viper.GetString("RewardToken.Symbol"))
 				if err == nil {
+<<<<<<< Updated upstream
 					hyphaSupply.Set(assetToFloat(&hypha))
+=======
+					hyphaSupply.Set(hypha)
+>>>>>>> Stashed changes
 				} else {
 					errorCount.Add(1)
 					log.Println("Retrieval error: supply: token contract: "+viper.GetString("RewardToken.Contract")+" symbol: "+viper.GetString("RewardToken.Symbol"), err)
@@ -273,7 +277,11 @@ var serveCmd = &cobra.Command{
 
 				husd, err := getTokenSupply(ctx, api, viper.GetString("Treasury.TokenContract"), viper.GetString("Treasury.Symbol"))
 				if err == nil {
+<<<<<<< Updated upstream
 					husdSupply.Set(assetToFloat(&husd))
+=======
+					husdSupply.Set(husd)
+>>>>>>> Stashed changes
 				} else {
 					errorCount.Add(1)
 					log.Println("Retrieval error: supply: token contract: "+viper.GetString("Treasury.TokenContract")+" symbol: "+viper.GetString("Treasury.Symbol"), err)
@@ -289,6 +297,7 @@ var serveCmd = &cobra.Command{
 
 				escrowedSeeds, err := getTokenBalance(ctx, api, viper.GetString("SeedsTokenContract"), viper.GetString("EscrowContract"), "SEEDS")
 				if err == nil {
+<<<<<<< Updated upstream
 					escrowedSeedsBalance.Set(assetToFloat(&escrowedSeeds))
 				} else {
 					errorCount.Add(1)
@@ -312,6 +321,9 @@ var serveCmd = &cobra.Command{
 				proposals, err := getLegacyObjects(ctx, api, eos.AN(viper.GetString("DAOContract")), eos.Name("proposal"))
 				if err == nil {
 					openProposals.Set(float64(len(proposals)))
+=======
+					voteEventCount.Set(float64(len(results)))
+>>>>>>> Stashed changes
 				} else {
 					errorCount.Add(1)
 					log.Println("Retrieval error: an error querying legacy objects from "+viper.GetString("DAOContract")+" scope: proposal", err)
@@ -338,7 +350,11 @@ var serveCmd = &cobra.Command{
 				query.Limit = 1000
 				results, err := query.Results()
 				if err == nil {
+<<<<<<< Updated upstream
 					voteEventCount.Set(float64(len(results)))
+=======
+					daoEventCount.Set(float64(len(results)))
+>>>>>>> Stashed changes
 				} else {
 					errorCount.Add(1)
 					log.Println("Error updating the vote count: ", err)

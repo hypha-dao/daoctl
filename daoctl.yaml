@@ -11,7 +11,12 @@ HyperionEndpoint: https://telos.caleos.io
 BallotPrefix: hypha1.....
 RewardToken:
   Contract: token.hypha
+<<<<<<< Updated upstream
   Symbol: HYPHA
+=======
+
+BallotPrefix: hypha1....
+>>>>>>> Stashed changes
 VoteTokenSymbol: HVOICE
 ServePort: 8085
 ScrapeInterval: 1m 
