@@ -42,8 +42,8 @@ dockers:
     binaries:
     - daoctl
     image_templates:
-    - "dsmaxds/daoctl:latest"
-    - "dsmaxds/daoctl:{{ .Tag }}"
+    - "dappdever/daoctl:latest"
+    - "dappdever/daoctl:{{ .Tag }}"
     dockerfile: Dockerfile
     extra_files:
     - daoctl.yaml

@@ -31,4 +31,4 @@ require (
 
 replace github.com/hypha-dao/dao-contracts/dao-go => ../dao-contracts/dao-go
 
-replace github.com/hypha-dao/document-graph/docgraph => ../document-graph/docgraph
+replace github.com/hypha-dao/document-graph/docgraph => ../dao-contracts/document-graph/docgraph
