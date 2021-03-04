@@ -1,6 +1,6 @@
 module github.com/hypha-dao/daoctl
 
-go 1.15
+go 1.16
 
 require (
 	github.com/alexeyco/simpletable v0.0.0-20200730140406-5bb24159ccfb
@@ -11,6 +11,7 @@ require (
 	github.com/hypha-dao/document-graph/docgraph v0.0.0-20201229193929-e09f4b1c9e47
 	github.com/leekchan/accounting v1.0.0
 	github.com/manifoldco/promptui v0.8.0
+	github.com/mattn/go-colorable v0.1.6 // indirect
 	github.com/mitchellh/go-homedir v1.1.0
 	github.com/patrickmn/go-cache v2.1.0+incompatible
 	github.com/pkg/errors v0.9.1
