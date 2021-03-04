@@ -19,3 +19,4 @@ SeedsExchangeContract: tlosto.seeds
 EscrowContract: escrow.seeds
 HyphaSeedsAccount: hypha.seeds
 SeedsTokenContract: token.seeds
+global-debug: false

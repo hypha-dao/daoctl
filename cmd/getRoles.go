@@ -7,7 +7,9 @@ import (
 	"github.com/alexeyco/simpletable"
 	eos "github.com/eoscanada/eos-go"
 	"github.com/hypha-dao/daoctl/models"
+	"github.com/hypha-dao/daoctl/util"
 	"github.com/hypha-dao/daoctl/views"
+	"github.com/hypha-dao/document-graph/docgraph"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 )
@@ -16,37 +18,37 @@ var getRolesCmd = &cobra.Command{
 	Use:   "roles",
 	Short: "retrieve roles",
 	Long:  "retrieve all active roles For a json dump, append the argument --json.",
-	Run: func(cmd *cobra.Command, args []string) {
+	RunE: func(cmd *cobra.Command, args []string) error {
 		api := eos.New(viper.GetString("EosioEndpoint"))
 		ctx := context.Background()
+		contract := eos.AN(viper.GetString("DAOContract"))
 
-		periods := models.LoadPeriods(api, true, true)
-
-		if viper.GetBool("global-active") == true {
-			printRolesTable(ctx, api, periods, "Current Roles", "role")
+		gc, err := util.GetCache(ctx, api, contract)
+		if err != nil {
+			return fmt.Errorf("cannot get cache: %v", err)
 		}
 
-		if viper.GetBool("global-include-proposals") == true {
-			printRolesTable(ctx, api, periods, "Current Role Proposals", "proposal")
+		roleDocs := gc.DocsByType["role"]
+		roles := make([]models.Role, len(roleDocs))
+		for idx, roleHash := range roleDocs {
+			roleDoc, found := gc.Cache.Get(roleHash)
+			if !found {
+				return fmt.Errorf("document cache out of whack, try deleting the cache file: %v %v", roleHash, err)
+			}
+
+			roles[idx], err = models.NewRole(roleDoc.(docgraph.Document))
+			if err != nil {
+				return fmt.Errorf("cannot get convert document to role type: %v", err)
+			}
 		}
 
-		if viper.GetBool("global-failed-proposals") == true {
-			printRolesTable(ctx, api, periods, "Failed Role Proposals", "failedprops")
-		}
+		rolesTable := views.RoleTable(roles)
+		rolesTable.SetStyle(simpletable.StyleCompactLite)
 
-		if viper.GetBool("global-include-archive") == true {
-			printRolesTable(ctx, api, periods, "Archive of Role Proposals", "proparchive")
-		}
+		fmt.Println("\n" + rolesTable.String() + "\n\n")
+
+		return nil
 	},
-}
-
-func printRolesTable(ctx context.Context, api *eos.API, periods []models.Period, title, scope string) {
-	fmt.Println("\n", title)
-	roles := models.Roles(ctx, api, periods, scope)
-	rolesTable := views.RoleTable(roles)
-	rolesTable.SetStyle(simpletable.StyleCompactLite)
-
-	fmt.Println("\n" + rolesTable.String() + "\n\n")
 }
 
 func init() {

@@ -7,7 +7,6 @@ import (
 	"math"
 	"math/big"
 	"net/http"
-	"strconv"
 	"time"
 
 	yaml "gopkg.in/yaml.v2"
@@ -94,53 +93,6 @@ func getTokenSupply(ctx context.Context, api *eos.API, tokenContract, symbol str
 		return eos.Asset{}, fmt.Errorf("could not get supply: query returned zero rows: token contract: " + tokenContract + "  symbol: " + symbol)
 	}
 	return supply[0].TokenSupply, nil
-}
-
-func getLegacyObjectsRange(ctx context.Context, api *eos.API, contract eos.AccountName, scope eos.Name, id, count int) ([]dao.Object, bool, error) {
-
-	var objects []dao.Object
-	var request eos.GetTableRowsRequest
-	request.LowerBound = strconv.Itoa(id)
-	request.Code = string(contract)
-	request.Scope = string(scope)
-	request.Table = "objects"
-	request.Limit = uint32(count)
-	request.JSON = true
-	response, err := api.GetTableRows(ctx, request)
-	if err != nil {
-		return []dao.Object{}, false, fmt.Errorf("get table rows %v", err)
-	}
-
-	err = response.JSONToStructs(&objects)
-	if err != nil {
-		return []dao.Object{}, false, fmt.Errorf("json to structs %v", err)
-	}
-	return objects, response.More, nil
-}
-
-func getLegacyObjects(ctx context.Context, api *eos.API, contract eos.AccountName, scope eos.Name) ([]dao.Object, error) {
-
-	var allObjects []dao.Object
-
-	cursor := 0
-	batchSize := 45
-
-	batch, more, err := getLegacyObjectsRange(ctx, api, contract, scope, cursor, batchSize)
-	if err != nil {
-		return []dao.Object{}, fmt.Errorf("json to structs %v", err)
-	}
-	allObjects = append(allObjects, batch...)
-
-	for more {
-		cursor += batchSize
-		batch, more, err = getLegacyObjectsRange(ctx, api, contract, scope, cursor, batchSize)
-		if err != nil {
-			return []dao.Object{}, fmt.Errorf("json to structs %v", err)
-		}
-		allObjects = append(allObjects, batch...)
-	}
-
-	return allObjects, nil
 }
 
 func getSeedsUsdPrice(ctx context.Context, api *eos.API) (eos.Asset, error) {
@@ -309,13 +261,13 @@ var serveCmd = &cobra.Command{
 				applicants := models.Applicants(ctx, api)
 				applicantCount.Set(float64(len(applicants)))
 
-				proposals, err := getLegacyObjects(ctx, api, eos.AN(viper.GetString("DAOContract")), eos.Name("proposal"))
-				if err == nil {
-					openProposals.Set(float64(len(proposals)))
-				} else {
-					errorCount.Add(1)
-					log.Println("Retrieval error: an error querying legacy objects from "+viper.GetString("DAOContract")+" scope: proposal", err)
-				}
+				// proposals, err := getLegacyObjects(ctx, api, eos.AN(viper.GetString("DAOContract")), eos.Name("proposal"))
+				// if err == nil {
+				// 	openProposals.Set(float64(len(proposals)))
+				// } else {
+				// 	errorCount.Add(1)
+				// 	log.Println("Retrieval error: an error querying legacy objects from "+viper.GetString("DAOContract")+" scope: proposal", err)
+				// }
 
 				seedsPriceUsdAsset, err := getSeedsUsdPrice(ctx, api)
 				if err == nil {

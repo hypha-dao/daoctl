@@ -5,7 +5,6 @@ import (
 	"context"
 	"encoding/hex"
 	"fmt"
-	"log"
 	"os"
 	"strings"
 
@@ -23,6 +22,7 @@ var yamlDefault = []byte(`
 EosioEndpoint: https://telos.caleos.io
 AssetsAsFloat: true
 DAOContract: dao.hypha
+RootNode: 52a7ff82bd6f53b31285e97d6806d886eefb650e79754784e9d923d3df347c91
 Treasury:
   TokenContract: husd.hypha
   Symbol: HUSD
@@ -54,14 +54,14 @@ Example use:
 	daoctl get treasury
 
 Hypha - Dapps for a New World - visit online @ hypha.earth`,
+	SilenceUsage: true,
 }
 
 // Execute adds all child commands to the root command and sets flags appropriately.
 // This is called by main.main(). It only needs to happen once to the RootCmd.
 func Execute() {
 	if err := RootCmd.Execute(); err != nil {
-		fmt.Println(err)
-		os.Exit(1)
+		zlog.Fatal(err)
 	}
 }
 
@@ -105,9 +105,11 @@ func initConfig() {
 		viper.SetConfigName("daoctl")
 	}
 
+	InitLogger()
+
 	// If a config file is found, read it in.
 	if err := viper.ReadInConfig(); err == nil {
-		log.Println("Using config file:", viper.ConfigFileUsed())
+		zap.S().Debugf("Using config file: %v", viper.ConfigFileUsed())
 	} else {
 		viper.ReadConfig(bytes.NewBuffer(yamlDefault))
 	}
@@ -119,26 +121,19 @@ func initConfig() {
 
 	recurseViperCommands(RootCmd, nil)
 
-	if viper.GetBool("global-debug") {
-		zlog, err := zap.NewDevelopment()
-		if err == nil {
-			SetLogger(zlog)
-		}
-	}
-
 	api := getAPI()
 	colorRed := "\033[31m"
 	colorCyan := "\033[36m"
 	colorReset := "\033[0m"
 	info, err := api.GetInfo(context.Background())
 	if err != nil {
-		fmt.Print(string(colorRed), "\nWARNING: Unable to get Hypha Blockchain Node info. Please check the EosioEndpoint configuration.\n\n")
+		zap.S().Fatal(string(colorRed) + "ERROR: Unable to get Hypha Blockchain Node info. Please check the EosioEndpoint configuration.")
 	}
 
 	if hex.EncodeToString(info.ChainID) == "4667b205c6838ef70ff7988f6e8257e8be0e1284a2f59699054a018f743b1d11" {
-		fmt.Print(string(colorRed), "\nWARNING: Connecting to the Hypha Production Mainnet")
+		fmt.Println(string(colorRed) + "\nWARNING: Connecting to the Hypha Production Mainnet")
 	} else if hex.EncodeToString(info.ChainID) == "1eaa0824707c8c16bd25145493bf062aecddfeb56c736f6ba6397f3195f33c9f" {
-		fmt.Print(string(colorCyan), "\nNETWORK: Connecting to the Hypha Test Network")
+		fmt.Println(string(colorCyan) + "\nNETWORK: Connecting to the Hypha Test Network")
 	}
 	fmt.Println(string(colorReset))
 }

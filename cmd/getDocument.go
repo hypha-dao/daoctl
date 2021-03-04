@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"image"
 	"log"
@@ -12,6 +13,7 @@ import (
 
 	"github.com/alexeyco/simpletable"
 	"github.com/eoscanada/eos-go"
+	"github.com/hypha-dao/daoctl/util"
 	"github.com/hypha-dao/daoctl/views"
 	"github.com/hypha-dao/document-graph/docgraph"
 	"github.com/manifoldco/promptui"
@@ -19,6 +21,7 @@ import (
 	"github.com/ryanuber/columnize"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
+	"github.com/tidwall/pretty"
 )
 
 func cleanString(input string) string {
@@ -256,31 +259,45 @@ func loadCache(ctx context.Context, api *eos.API, pages, documents *cache.Cache,
 }
 
 var getDocumentCmd = &cobra.Command{
-	Use:   "document [hash]",
+	Use:   "document [hash | shorty]",
 	Short: "retrieve document details and navigate the graph",
 	Long:  "retrieve the detailed content within a document",
 	Args:  cobra.RangeArgs(0, 1),
-	Run: func(cmd *cobra.Command, args []string) {
+	RunE: func(cmd *cobra.Command, args []string) error {
 		api := eos.New(viper.GetString("EosioEndpoint"))
 		ctx := context.Background()
 		contract := eos.AN(viper.GetString("DAOContract"))
 
 		var hash string
 
-		if viper.GetBool("get-document-cmd-last") {
+		// if last==true OR no argument, use the last document
+		if viper.GetBool("get-document-cmd-last") || len(args) == 0 {
 			lastDocument, err := docgraph.GetLastDocument(ctx, api, contract)
 			if err != nil {
-				panic(fmt.Errorf("cannot get last document: %v", err))
+				return fmt.Errorf("cannot get last document: %v", err)
 			}
 			hash = lastDocument.Hash.String()
-			fmt.Println("Last document hash: " + hash)
+		}
+
+		// if getting a document with JSON, just print it out and exit
+		if viper.GetBool("get-document-cmd-json") {
+			document, err := util.Get(ctx, api, contract, hash)
+			if err != nil {
+				return fmt.Errorf("cannot find document with hash: %v %v", hash, err)
+			}
+
+			docJson, err := json.Marshal(document)
+			if err != nil {
+				return fmt.Errorf("cannot marshall document to JSON: %v %v", args[0], err)
+			}
+
+			fmt.Println(string(pretty.Color(pretty.Pretty(docJson), nil)))
+			return nil
 		}
 
 		if len(args) == 1 {
 			hash = args[0]
 		}
-
-		fmt.Println("STARTING hash: " + hash)
 
 		var page Page
 		pages := cache.New(5*time.Minute, 10*time.Minute)
@@ -294,137 +311,51 @@ var getDocumentCmd = &cobra.Command{
 
 			printDocument(ctx, api, &page)
 
-			fmt.Println("                          ")
-			templates := &promptui.SelectTemplates{
-				Label:    "{{ . }}  {{ \"from: node_label (type) --->    edge_name ---> [X] ---> edge_name    ---> to: node_label (type) \" | faint }}",
-				Active:   "{{ .Column1 | cyan}}{{ .Column2 | cyan}}",
-				Inactive: "{{ .Column1 }}{{ .Column2 }}",
-				Selected: "{{ \"  -- selected -- \" | yellow}}{{ .Column1 | yellow}}{{ .Column2 | yellow}} {{ \"  -- selected -- \" | yellow}}",
+			if viper.GetBool("get-document-cmd-navigate") {
+				fmt.Println("                          ")
+				templates := &promptui.SelectTemplates{
+					Label:    "{{ . }}  {{ \"from: node_label (type) --->    edge_name ---> [X] ---> edge_name    ---> to: node_label (type) \" | faint }}",
+					Active:   "{{ .Column1 | cyan}}{{ .Column2 | cyan}}",
+					Inactive: "{{ .Column1 }}{{ .Column2 }}",
+					Selected: "{{ \"  -- selected -- \" | yellow}}{{ .Column1 | yellow}}{{ .Column2 | yellow}} {{ \"  -- selected -- \" | yellow}}",
+				}
+
+				searcher := func(input string, index int) bool {
+					pepper := page.EdgePrompts[index]
+					name := strings.Replace(strings.ToLower(string(pepper.Name)), " ", "", -1)
+					input = strings.Replace(strings.ToLower(input), " ", "", -1)
+
+					return strings.Contains(name, input)
+				}
+
+				prompt2 := promptui.Select{
+					Label:     "Select an edge to navigate:",
+					Items:     page.EdgePrompts,
+					Templates: templates,
+					Size:      len(page.FromEdges) + len(page.ToEdges),
+					Searcher:  searcher,
+				}
+
+				i, _, err := prompt2.Run()
+				if err != nil {
+					return fmt.Errorf("Prompt failed %v\n", err)
+				}
+
+				fmt.Println()
+				fmt.Println("-------------------------------------------------------------------------------------------------")
+				fmt.Println()
+
+				hash = page.EdgePrompts[i].To
+			} else {
+				return nil
 			}
-
-			searcher := func(input string, index int) bool {
-				pepper := page.EdgePrompts[index]
-				name := strings.Replace(strings.ToLower(string(pepper.Name)), " ", "", -1)
-				input = strings.Replace(strings.ToLower(input), " ", "", -1)
-
-				return strings.Contains(name, input)
-			}
-
-			// prompt := promptui.Prompt{
-			// 	Label:     "Save Image",
-			// 	IsConfirm: true,
-			// }
-
-			// saveImage, err := prompt.Run()
-
-			// fmt.Println("You selected: " + saveImage)
-			// if err != nil {
-			// 	fmt.Printf("Prompt failed %v\n", err)
-			// 	return
-			// }
-
-			// if saveImage == "y" {
-			// 	f, err := os.Create(page.Primary.Hash.String() + ".png")
-			// 	if err != nil {
-			// 		panic(err)
-			// 	}
-			// 	defer f.Close()
-
-			// 	err = png.Encode(f, page.Graph)
-			// 	if err != nil {
-			// 		panic(err)
-			// 	}
-			// }
-
-			prompt2 := promptui.Select{
-				Label:     "Select an edge to navigate:",
-				Items:     page.EdgePrompts,
-				Templates: templates,
-				Size:      len(page.FromEdges) + len(page.ToEdges),
-				Searcher:  searcher,
-			}
-
-			i, _, err := prompt2.Run()
-			if err != nil {
-				fmt.Printf("Prompt failed %v\n", err)
-				return
-			}
-
-			fmt.Println()
-			fmt.Println("-------------------------------------------------------------------------------------------------")
-			fmt.Println()
-
-			hash = page.EdgePrompts[i].To
-
-			// err = ioutil.WriteFile("last-doc.tmp", []byte(hash), 0644)
-			// if err != nil {
-			// 	fmt.Printf("Failed to write temporary file %v\n", err)
-			// 	return
-			// }
 		}
 	},
 }
 
 func init() {
 	getDocumentCmd.Flags().BoolP("last", "l", false, "retrieve the most recently created document")
+	getDocumentCmd.Flags().BoolP("json", "j", false, "print the document to the terminal in JSON and exit")
+	getDocumentCmd.Flags().BoolP("navigate", "n", true, "show document edges and allow interactive graph navigation")
 	getCmd.AddCommand(getDocumentCmd)
-}
-
-// saves a file PNG of the image, but commenting out to avoid the dependency for now
-func saveImage(ctx context.Context, api *eos.API, pageCache, documentCache *cache.Cache, contract eos.AccountName, hash string) {
-
-	// page := getPage(ctx, api, pageCache, documentCache, contract, hash)
-
-	// var g *graphviz.Graphviz
-	// g = graphviz.New()
-	// graph, err := g.Graph()
-	// if err != nil {
-	// 	log.Fatal(err)
-	// }
-	// defer func() {
-	// 	if err := graph.Close(); err != nil {
-	// 		log.Fatal(err)
-	// 	}
-	// 	g.Close()
-	// }()
-
-	// primaryNode, err := graph.CreateNode(getLabel(&page.Primary))
-	// if err != nil {
-	// 	log.Fatal(err)
-	// }
-
-	// for i, edge := range page.FromEdges {
-
-	// 	document := getDocument(ctx, api, documentCache, contract, edge.ToNode.String())
-	// 	secondaryNode, err := graph.CreateNode(getLabel(&document))
-	// 	if err != nil {
-	// 		log.Fatal(err)
-	// 	}
-
-	// 	spEdge, err := graph.CreateEdge(string(edge.EdgeName), secondaryNode, primaryNode)
-	// 	if err != nil {
-	// 		log.Fatal(err)
-	// 	}
-	// 	spEdge.SetLabel(string(edge.EdgeName))
-	// }
-
-	// for i, edge := range page.ToEdges {
-
-	// 	document := getDocument(ctx, api, documentCache, contract, edge.FromNode.String())
-	// 	secondaryNode, err := graph.CreateNode(getLabel(&document))
-	// 	if err != nil {
-	// 		log.Fatal(err)
-	// 	}
-
-	// 	psEdge, err := graph.CreateEdge(string(edge.EdgeName), primaryNode, secondaryNode)
-	// 	if err != nil {
-	// 		log.Fatal(err)
-	// 	}
-	// 	psEdge.SetLabel(string(edge.EdgeName))
-	// }
-
-	// page.Graph, err = g.RenderImage(graph)
-	// if err != nil {
-	// 	log.Fatal(err)
-	// }
 }

@@ -11,3 +11,4 @@ dist/
 daoctl-*.yaml
 daoctl-local.yaml
 last-doc.tmp
+.graph.cache
