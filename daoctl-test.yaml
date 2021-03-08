@@ -1,13 +1,12 @@
-EosioEndpoint: https://testnet.telos.caleos.io
-AssetsAsFloat: true
-DAOContract: dao.hypha
+EosioEndpoint: https://test.telos.kitchen
+DAOContract: dao1.hypha
 Treasury:
   TokenContract: husd.hypha
   Symbol: HUSD
   Contract: bank.hypha
 TelosDecideContract: trailservice
 SeedsTokenContract: token.seeds
-DAOUser: johnnyhypha1
+DAOUser: m.hypha
 HyperionEndpoint: https://testnet.telosusa.io/v2
 BallotPrefix: hypha1.....
 RewardToken:

@@ -1,7 +1,7 @@
 package models
 
 import (
-	"context"
+	"fmt"
 
 	eos "github.com/eoscanada/eos-go"
 	"github.com/hypha-dao/document-graph/docgraph"
@@ -9,23 +9,22 @@ import (
 
 // Assignment represents a person assigned to a role for a specific period of time
 type Assignment struct {
-	ID                  uint64
-	Approved            bool
-	Owner               eos.Name
-	Assigned            eos.Name
-	BallotName          eos.Name
-	HusdPerPhase        eos.Asset
-	HyphaPerPhase       eos.Asset
-	HvoicePerPhase      eos.Asset
-	SeedsEscrowPerPhase eos.Asset
-	SeedsLiquidPerPhase eos.Asset
-	DeferredPay         float64
-	InstantHusdPerc     float64
-	TimeShare           float64
-	Role                Role
-	StartPeriod         Period
-	EndPeriod           Period
-	CreatedDate         eos.BlockTimestamp
+	// Approved            bool
+	Hash            eos.Checksum256
+	Title           string
+	Description     string
+	Owner           eos.Name
+	Assigned        eos.Name
+	BallotName      eos.Name
+	HusdPerPhase    eos.Asset
+	HyphaPerPhase   eos.Asset
+	HvoicePerPhase  eos.Asset
+	DeferredPay     float64
+	InstantHusdPerc float64
+	TimeShare       float64
+	StartPeriod     Period
+	PeriodCount     int64
+	Document        docgraph.Document
 }
 
 func setOrDefault(values map[string]eos.Asset, key string, defaultValue *eos.Asset) *eos.Asset {
@@ -36,57 +35,96 @@ func setOrDefault(values map[string]eos.Asset, key string, defaultValue *eos.Ass
 }
 
 // NewAssignment converts a generic DAO Object to a typed Assignment
-func NewAssignment(daoObj docgraph.Document, roles []Role, periods []Period) Assignment {
-	return Assignment{}
-	// zeroSeeds, _ := eos.NewAssetFromString("0.0000 SEEDS")
+func NewAssignment(doc docgraph.Document) (Assignment, error) {
 
-	// var a Assignment
-	// a.ID = daoObj.ID
-	// a.Owner = daoObj.Names["owner"]
-	// a.Assigned = daoObj.Names["assigned_account"]
-	// a.BallotName = daoObj.Names["ballot_id"]
-	// a.HusdPerPhase = daoObj.Assets["husd_salary_per_phase"]
-	// a.HyphaPerPhase = daoObj.Assets["hypha_salary_per_phase"]
-	// a.HvoicePerPhase = daoObj.Assets["hvoice_salary_per_phase"]
-	// a.SeedsEscrowPerPhase = *setOrDefault(daoObj.Assets, "seeds_escrow_salary_per_phase", &zeroSeeds)
-	// a.SeedsLiquidPerPhase = *setOrDefault(daoObj.Assets, "seeds_instant_salary_per_phase", &zeroSeeds)
-	// a.Role = roles[daoObj.Ints["role_id"]]
-	// a.StartPeriod = periods[daoObj.Ints["start_period"]]
-	// a.EndPeriod = periods[daoObj.Ints["end_period"]]
-	// a.TimeShare = float64(daoObj.Ints["time_share_x100"]) / 100
-	// a.DeferredPay = float64(daoObj.Ints["deferred_perc_x100"]) / 100
-	// a.InstantHusdPerc = float64(daoObj.Ints["instant_husd_perc_x100"]) / 100
-	// a.CreatedDate = daoObj.CreatedDate
-	// return a
-}
+	a := Assignment{}
+	a.Document = doc
 
-// Assignments provides the set of active approved assignments
-func Assignments(ctx context.Context, api *eos.API, roles []Role, periods []Period, scope string, includeExpired bool) ([]Assignment, error) {
-	return []Assignment{}, nil
-	// objects := LoadObjects(ctx, api, scope)
-	// var currentPeriod int64
-	// var err error
+	titleFv, err := doc.GetContentFromGroup("details", "title")
+	if err != nil {
+		return Assignment{}, fmt.Errorf("get content failed: %v", err)
+	}
+	a.Title = titleFv.String()
 
-	// currentPeriod = -1
-	// if !includeExpired {
-	// 	currentPeriod, err = CurrentPeriod(&periods)
-	// 	if err != nil {
-	// 		return nil, fmt.Errorf("cannot determine current period in order to include expired: %w", err)
-	// 	}
-	// }
+	descFv, err := doc.GetContentFromGroup("details", "description")
+	if err != nil {
+		return Assignment{}, fmt.Errorf("get content failed: %v", err)
+	}
+	a.Description = descFv.String()
 
-	// var assignments []Assignment
-	// for index := range objects {
-	// 	daoObject := ToDocument(objects[index])
-	// 	if daoObject.Names["type"] == "assignment" {
-	// 		if !includeExpired && daoObject.Ints["end_period"] < uint64(currentPeriod) {
-	// 			continue
-	// 		}
-	// 		assignment := NewAssignment(daoObject, roles, periods)
-	// 		assignment.Approved = scopeApprovals(scope)
-	// 		assignments = append(assignments, assignment)
-	// 	}
-	// }
+	ballotName, err := doc.GetContentFromGroup("system", "ballot_id")
+	if err != nil {
+		return Assignment{}, fmt.Errorf("get content failed: %v", err)
+	}
+	a.BallotName, err = ballotName.Name()
+	if err != nil {
+		return Assignment{}, fmt.Errorf("value downcasting failed: %v", err)
+	}
 
-	// return assignments, nil
+	owner, err := doc.GetContentFromGroup("details", "owner")
+	if err != nil {
+		return Assignment{}, fmt.Errorf("get content failed: %v", err)
+	}
+	a.Owner, err = owner.Name()
+	if err != nil {
+		return Assignment{}, fmt.Errorf("value downcasting failed: %v", err)
+	}
+
+	husd, err := doc.GetContentFromGroup("details", "husd_salary_per_phase")
+	if err != nil {
+		return Assignment{}, fmt.Errorf("get content failed: %v", err)
+	}
+	a.HusdPerPhase, err = husd.Asset()
+	if err != nil {
+		return Assignment{}, fmt.Errorf("get content failed: %v", err)
+	}
+
+	hypha, err := doc.GetContentFromGroup("details", "hypha_salary_per_phase")
+	if err != nil {
+		return Assignment{}, fmt.Errorf("get content failed: %v", err)
+	}
+	a.HyphaPerPhase, err = hypha.Asset()
+	if err != nil {
+		return Assignment{}, fmt.Errorf("get content failed: %v", err)
+	}
+
+	hvoice, err := doc.GetContentFromGroup("details", "hvoice_salary_per_phase")
+	if err != nil {
+		return Assignment{}, fmt.Errorf("get content failed: %v", err)
+	}
+	a.HvoicePerPhase, err = hvoice.Asset()
+	if err != nil {
+		return Assignment{}, fmt.Errorf("get content failed: %v", err)
+	}
+
+	periodCount, err := doc.GetContentFromGroup("details", "period_count")
+	if err != nil {
+		return Assignment{}, fmt.Errorf("missing period_count, cannot continue: %v", err)
+	}
+	a.PeriodCount, err = periodCount.Int64()
+	if err != nil {
+		return Assignment{}, fmt.Errorf("get content failed: %v", err)
+	}
+
+	timeShare, err := doc.GetContentFromGroup("details", "time_share_x100")
+	if err != nil {
+		return Assignment{}, fmt.Errorf("missing time_share, cannot continue: %v", err)
+	}
+	timeShareInt, err := timeShare.Int64()
+	if err != nil {
+		return Assignment{}, fmt.Errorf("get content failed: %v", err)
+	}
+	a.TimeShare = float64(timeShareInt) / 100
+
+	deferredPay, err := doc.GetContentFromGroup("details", "deferred_pay_x100")
+	if err != nil {
+		return Assignment{}, fmt.Errorf("missing deferred_pay, cannot continue: %v", err)
+	}
+	deferredPayInt, err := deferredPay.Int64()
+	if err != nil {
+		return Assignment{}, fmt.Errorf("get content failed: %v", err)
+	}
+	a.DeferredPay = float64(deferredPayInt) / 100
+
+	return a, nil
 }

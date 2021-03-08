@@ -9,7 +9,6 @@ import (
 	"github.com/hypha-dao/daoctl/models"
 	"github.com/hypha-dao/daoctl/views"
 	"github.com/spf13/cobra"
-	"github.com/spf13/viper"
 )
 
 var getPayoutCmd = &cobra.Command{
@@ -18,26 +17,26 @@ var getPayoutCmd = &cobra.Command{
 	Long:  "retrieve all payouts",
 	// Args:  cobra.RangeArgs(1, 2),
 	Run: func(cmd *cobra.Command, args []string) {
-		api := eos.New(viper.GetString("EosioEndpoint"))
-		ctx := context.Background()
+		// api := eos.New(viper.GetString("EosioEndpoint"))
+		// ctx := context.Background()
 
-		periods := models.LoadPeriods(api, true, true)
+		// periods := models.LoadPeriods(api, true, true)
 
-		if viper.GetBool("global-active") == true {
-			printPayoutTable(ctx, api, periods, "Completed Payouts", "payout")
-		}
+		// if viper.GetBool("global-active") == true {
+		// 	printPayoutTable(ctx, api, periods, "Completed Payouts", "payout")
+		// }
 
-		if viper.GetBool("global-include-proposals") == true {
-			printPayoutTable(ctx, api, periods, "Open Payout Proposals", "proposal")
-		}
+		// if viper.GetBool("global-include-proposals") == true {
+		// 	printPayoutTable(ctx, api, periods, "Open Payout Proposals", "proposal")
+		// }
 
-		if viper.GetBool("global-failed-proposals") == true {
-			printPayoutTable(ctx, api, periods, "Failed Payout Proposals", "failedprops")
-		}
+		// if viper.GetBool("global-failed-proposals") == true {
+		// 	printPayoutTable(ctx, api, periods, "Failed Payout Proposals", "failedprops")
+		// }
 
-		if viper.GetBool("global-include-archive") == true {
-			printPayoutTable(ctx, api, periods, "Archived Payout Proposals", "proparchive")
-		}
+		// if viper.GetBool("global-include-archive") == true {
+		// 	printPayoutTable(ctx, api, periods, "Archived Payout Proposals", "proparchive")
+		// }
 	},
 }
 

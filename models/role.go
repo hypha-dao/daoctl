@@ -28,8 +28,6 @@ type Role struct {
 	MinTime          float64
 	MinDeferred      float64
 	FullTimeCapacity float64
-	StartPeriod      Period
-	EndPeriod        Period
 	CreatedDate      eos.BlockTimestamp
 }
 
@@ -44,8 +42,7 @@ func (r *Role) String() string {
 		fmt.Sprintf("Minimum Deferred Pay|%v", strconv.FormatFloat(r.MinDeferred*100, 'f', -1, 64)),
 		fmt.Sprintf("Full Time Capacity|%v", strconv.FormatFloat(r.FullTimeCapacity, 'f', 1, 64)),
 		fmt.Sprintf("FTE Cap Cost|%v", util.FormatAsset(&fteCapCost, 2)),
-		fmt.Sprintf("Start Period|%v", r.StartPeriod.StartTime.Time.Format("2006 Jan 02 15:04:05")),
-		fmt.Sprintf("End Period|%v", r.EndPeriod.EndTime.Time.Format("2006 Jan 02 15:04:05")),
+		//fmt.Sprintf("Start Period|%v", r.StartPeriod.StartTime.Time.Format("2006 Jan 02 15:04:05")),
 		fmt.Sprintf("Created Date|%v", r.CreatedDate.Time.Format("2006 Jan 02 15:04:05")),
 		fmt.Sprintf("Ballot ID|%v", string(r.BallotName)[10:]),
 		fmt.Sprintf("Description|%v", r.Description),

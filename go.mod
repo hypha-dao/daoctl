@@ -7,6 +7,7 @@ require (
 	github.com/bronze1man/go-yaml2json v0.0.0-20150129175009-f6f64b738964
 	github.com/eoscanada/eos-go v0.9.1-0.20200805141443-a9d5402a7bc5
 	github.com/eoscanada/eosc v1.4.0
+	github.com/go-git/go-git/v5 v5.2.0
 	github.com/hypha-dao/dao-contracts/dao-go v0.0.0-00010101000000-000000000000
 	github.com/hypha-dao/document-graph/docgraph v0.0.0-20201229193929-e09f4b1c9e47
 	github.com/leekchan/accounting v1.0.0

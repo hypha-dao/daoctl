@@ -1,14 +1,6 @@
 package cmd
 
 import (
-	"context"
-	"fmt"
-	"os"
-
-	"github.com/alexeyco/simpletable"
-	"github.com/eoscanada/eos-go"
-	"github.com/hypha-dao/daoctl/models"
-	"github.com/hypha-dao/daoctl/views"
 	"github.com/spf13/cobra"
 )
 
@@ -61,21 +53,21 @@ var getAssignmentsCmd = &cobra.Command{
 	},
 }
 
-func getAssignmentTable(ctx context.Context, api *eos.API, roles []models.Role, periods []models.Period, title, scope string, includeExpired bool) *simpletable.Table {
-	assignments, err := models.Assignments(ctx, api, roles, periods, scope, includeExpired)
-	if err != nil {
-		fmt.Println("Cannot get list of assignments: " + err.Error())
-		os.Exit(-1)
-	}
-	return views.AssignmentTable(assignments)
-}
+// func getAssignmentTable(ctx context.Context, api *eos.API, roles []models.Role, periods []models.Period, title, scope string, includeExpired bool) *simpletable.Table {
+// 	assignments, err := models.Assignments(ctx, api, roles, periods, scope, includeExpired)
+// 	if err != nil {
+// 		fmt.Println("Cannot get list of assignments: " + err.Error())
+// 		os.Exit(-1)
+// 	}
+// 	return views.AssignmentTable(assignments)
+// }
 
-func printAssignmentTable(ctx context.Context, api *eos.API, roles []models.Role, periods []models.Period, title, scope string, includeExpired bool) {
-	fmt.Println("\n", title)
-	assignmentsTable := getAssignmentTable(ctx, api, roles, periods, title, scope, includeExpired)
-	assignmentsTable.SetStyle(simpletable.StyleCompactLite)
-	fmt.Println("\n" + assignmentsTable.String() + "\n\n")
-}
+// func printAssignmentTable(ctx context.Context, api *eos.API, roles []models.Role, periods []models.Period, title, scope string, includeExpired bool) {
+// 	fmt.Println("\n", title)
+// 	assignmentsTable := getAssignmentTable(ctx, api, roles, periods, title, scope, includeExpired)
+// 	assignmentsTable.SetStyle(simpletable.StyleCompactLite)
+// 	fmt.Println("\n" + assignmentsTable.String() + "\n\n")
+// }
 
 func init() {
 	getCmd.AddCommand(getAssignmentsCmd)
