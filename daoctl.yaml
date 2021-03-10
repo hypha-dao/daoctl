@@ -1,7 +1,7 @@
 EosioEndpoint: https://api.telos.kitchen
 AssetsAsFloat: true
 DAOContract: dao.hypha
-DAORepo: github.com/hypha-dao/dao-contracts
+DAORepo: https://github.com/hypha-dao/dao-contracts
 RootNode: 52a7ff82bd6f53b31285e97d6806d886eefb650e79754784e9d923d3df347c91
 Treasury:
   TokenContract: husd.hypha

@@ -1,5 +1,6 @@
 EosioEndpoint: https://test.telos.kitchen
 DAOContract: dao1.hypha
+MsigContract: msig.hypha
 Treasury:
   TokenContract: husd.hypha
   Symbol: HUSD
@@ -18,3 +19,4 @@ ScrapeInterval: 1m
 SeedsExchangeContract: tlosto.seeds
 EscrowContract: escrow.seeds
 HyphaSeedsAccount: hypha.seeds
+DAORepo: https://github.com/hypha-dao/dao-contracts
