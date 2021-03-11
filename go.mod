@@ -5,8 +5,6 @@ go 1.16
 require (
 	github.com/alexeyco/simpletable v0.0.0-20200730140406-5bb24159ccfb
 	github.com/bronze1man/go-yaml2json v0.0.0-20150129175009-f6f64b738964
-	github.com/charmbracelet/bubbles v0.7.6
-	github.com/charmbracelet/bubbletea v0.12.2
 	github.com/eoscanada/eos-go v0.9.1-0.20200805141443-a9d5402a7bc5
 	github.com/eoscanada/eosc v1.4.0
 	github.com/go-git/go-git/v5 v5.2.0
@@ -16,8 +14,6 @@ require (
 	github.com/manifoldco/promptui v0.8.0
 	github.com/mattn/go-colorable v0.1.6 // indirect
 	github.com/mitchellh/go-homedir v1.1.0
-	github.com/mritd/bubbles v0.0.0-20210113152436-12363c089d42 // indirect
-	github.com/muesli/termenv v0.7.4
 	github.com/patrickmn/go-cache v2.1.0+incompatible
 	github.com/pkg/errors v0.9.1
 	github.com/prometheus/client_golang v1.8.0
