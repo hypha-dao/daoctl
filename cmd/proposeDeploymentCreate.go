@@ -122,33 +122,6 @@ var proposeDeploymentCreateCmd = &cobra.Command{
 			return fmt.Errorf("unable to checkout to commit %v", err)
 		}
 
-		sub, err := w.Submodule("document-graph")
-		if err != nil {
-			return fmt.Errorf("cannot get document-graph submodule repo: %v %v", buildDir, err)
-		}
-
-		sr, err := sub.Repository()
-		if err != nil {
-			return fmt.Errorf("cannot get document-graph sub-module repository: %v %v", buildDir, err)
-		}
-
-		sw, err := sr.Worktree()
-		if err != nil {
-			return fmt.Errorf("cannot get document-graph sub-module worktree: %v %v", buildDir, err)
-		}
-		zap.S().Info("running document-graph submodule update --remote")
-
-		err = sw.Pull(&git.PullOptions{
-			Force:             true,
-			RemoteName:        "origin",
-			ReferenceName:     "master",
-			RecurseSubmodules: git.DefaultSubmoduleRecursionDepth,
-			Progress:          os.Stdout,
-		})
-		if err != nil {
-			return fmt.Errorf("cannot pull remote origin on document-graph sub-module: %v %v", buildDir, err)
-		}
-
 		cmake := exec.Command("cmake", dir)
 		cmake.Dir = buildDir
 		zap.S().Info("running cmake - " + cmake.String())
@@ -159,16 +132,14 @@ var proposeDeploymentCreateCmd = &cobra.Command{
 		zap.S().Info("running make to build contracts - " + make.String())
 		make.Run()
 
-		// ref, err = repo.Head()
-		// if err != nil {
-		// 	return fmt.Errorf("unable to switch to Head: %v", err)
-		// }
-
-		// zap.S().Info(" the repo HEAD " + ref.Hash().String())
 		d := deployment{}
 		d.ProposalName = eos.Name(proposalName)
 		d.Proposer = eos.AccountName(viper.GetString("DAOUser"))
 		d.RequestedApprovals = []eos.PermissionLevel{
+			{
+				Actor:      "gh.hypha",
+				Permission: "active",
+			},
 			{
 				Actor:      "m.hypha",
 				Permission: "active",
