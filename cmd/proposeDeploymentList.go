@@ -46,6 +46,8 @@ var proposeDeploymentListCmd = &cobra.Command{
 		}
 
 		fmt.Println(dT.String())
+		fmt.Println()
+		fmt.Println()
 		return nil
 	},
 }

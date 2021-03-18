@@ -49,33 +49,33 @@ var proposeDeploymentCreateCmd = &cobra.Command{
 		api := eos.New(viper.GetString("EosioEndpoint"))
 		ctx := context.Background()
 
-		proposalName, err := grabInput("propose-deployment-cmd-proposal-name", proposalNamePromptLabel)
+		proposalName, err := grabInput("propose-deployment-create-cmd-proposal-name", proposalNamePromptLabel)
 		if err != nil {
 			return fmt.Errorf("cannot clone repo: %v", err)
 		}
 
-		account, err := grabInput("propose-deployment-cmd-account", accountPromptLabel)
+		account, err := grabInput("propose-deployment-create-cmd-account", accountPromptLabel)
 		if err != nil {
 			return fmt.Errorf("cannot clone repo: %v", err)
 		}
 
 		// TODO: query list of recent commits from github
-		commit, err := grabInput("propose-deployment-cmd-commit", commitPromptLabel)
+		commit, err := grabInput("propose-deployment-create-cmd-commit", commitPromptLabel)
 		if err != nil {
 			return fmt.Errorf("cannot clone repo: %v", err)
 		}
 
-		developer, err := grabInput("propose-deployment-cmd-developer", developerPromptLabel)
+		developer, err := grabInput("propose-deployment-create-cmd-developer", developerPromptLabel)
 		if err != nil {
 			return fmt.Errorf("cannot clone repo: %v", err)
 		}
 
-		document, err := grabInput("propose-deployment-cmd-document", existingDocumentLabel)
+		document, err := grabInput("propose-deployment-create-cmd-document", existingDocumentLabel)
 		if err != nil {
 			return fmt.Errorf("cannot clone repo: %v", err)
 		}
 
-		notes, err := grabInput("propose-deployment-cmd-notes", notesPromptLabel)
+		notes, err := grabInput("propose-deployment-create-cmd-notes", notesPromptLabel)
 		if err != nil {
 			return fmt.Errorf("cannot clone repo: %v", err)
 		}
@@ -96,7 +96,6 @@ var proposeDeploymentCreateCmd = &cobra.Command{
 		if err != nil {
 			return fmt.Errorf("cannot clone repo: %v", err)
 		}
-
 		buildDir := dir + "/build"
 
 		err = os.Mkdir(buildDir, 0700)
@@ -106,15 +105,15 @@ var proposeDeploymentCreateCmd = &cobra.Command{
 
 		ref, err := repo.Head()
 		if err != nil {
-			return fmt.Errorf("cannot create a temporary directory: %v", err)
+			return fmt.Errorf("cannot access the repo HEAD: %v", err)
 		}
-		zap.S().Info("printing the repo HEAD " + ref.Hash().String())
+		zap.S().Info("current repo HEAD " + ref.Hash().String())
 
 		w, err := repo.Worktree()
 		if err != nil {
-			return fmt.Errorf("cannot create a temporary directory: %v", err)
+			return fmt.Errorf("cannot access the repo Worktree: %v", err)
 		}
-		zap.S().Info("git checkout " + commit)
+		zap.S().Info("executing a checkout of commit: " + commit)
 
 		err = w.Checkout(&git.CheckoutOptions{
 			Hash: plumbing.NewHash(commit),
@@ -130,20 +129,24 @@ var proposeDeploymentCreateCmd = &cobra.Command{
 
 		sr, err := sub.Repository()
 		if err != nil {
-			return fmt.Errorf("cannot get document-graph repo: %v %v", buildDir, err)
+			return fmt.Errorf("cannot get document-graph sub-module repository: %v %v", buildDir, err)
 		}
 
 		sw, err := sr.Worktree()
 		if err != nil {
-			return fmt.Errorf("cannot get document-graph sw: %v %v", buildDir, err)
+			return fmt.Errorf("cannot get document-graph sub-module worktree: %v %v", buildDir, err)
 		}
-
 		zap.S().Info("running document-graph submodule update --remote")
+
 		err = sw.Pull(&git.PullOptions{
-			RemoteName: "origin",
+			Force:             true,
+			RemoteName:        "origin",
+			ReferenceName:     "master",
+			RecurseSubmodules: git.DefaultSubmoduleRecursionDepth,
+			Progress:          os.Stdout,
 		})
 		if err != nil {
-			return fmt.Errorf("cannot get document-graph sw: %v %v", buildDir, err)
+			return fmt.Errorf("cannot pull remote origin on document-graph sub-module: %v %v", buildDir, err)
 		}
 
 		cmake := exec.Command("cmake", dir)
@@ -156,12 +159,12 @@ var proposeDeploymentCreateCmd = &cobra.Command{
 		zap.S().Info("running make to build contracts - " + make.String())
 		make.Run()
 
-		ref, err = repo.Head()
-		if err != nil {
-			return fmt.Errorf("unable to switch to Head: %v", err)
-		}
+		// ref, err = repo.Head()
+		// if err != nil {
+		// 	return fmt.Errorf("unable to switch to Head: %v", err)
+		// }
 
-		zap.S().Info("printing the repo HEAD " + ref.Hash().String())
+		// zap.S().Info(" the repo HEAD " + ref.Hash().String())
 		d := deployment{}
 		d.ProposalName = eos.Name(proposalName)
 		d.Proposer = eos.AccountName(viper.GetString("DAOUser"))
@@ -203,7 +206,7 @@ var proposeDeploymentCreateCmd = &cobra.Command{
 				},
 			},
 			docgraph.ContentItem{
-				Label: "notes",
+				Label: "document",
 				Value: &docgraph.FlexValue{
 					BaseVariant: eos.BaseVariant{
 						TypeID: docgraph.GetVariants().TypeID("string"), // TODO: check if valid hash?
@@ -225,7 +228,7 @@ var proposeDeploymentCreateCmd = &cobra.Command{
 				Value: &docgraph.FlexValue{
 					BaseVariant: eos.BaseVariant{
 						TypeID: docgraph.GetVariants().TypeID("name"),
-						Impl:   developer,
+						Impl:   eos.Name(developer),
 					},
 				},
 			},
