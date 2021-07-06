@@ -62,3 +62,27 @@ func NewPeriod(ctx context.Context, api *eos.API, contract eos.AccountName, doc 
 	}
 	return p, nil
 }
+
+func NewSinglePeriod(ctx context.Context, api *eos.API, contract eos.AccountName, doc docgraph.Document) (Period, error) {
+	p := Period{}
+	p.Document = doc
+
+	startTime, err := doc.GetContentFromGroup("details", "start_time")
+	if err != nil {
+		return Period{}, fmt.Errorf("get content failed: %v", err)
+	}
+	p.StartTimePoint, err = startTime.TimePoint()
+	if err != nil {
+		return Period{}, fmt.Errorf("get content failed: %v", err)
+	}
+	p.StartTime = time.Unix(int64(p.StartTimePoint)/1000000, 0).UTC()
+	// zap.S().Debugf("Loading a period with a start date: %v", p.StartTime.Format("2006 Jan 02 15:04:05"))
+
+	label, err := doc.GetContentFromGroup("details", "label")
+	if err != nil {
+		return Period{}, fmt.Errorf("get content failed: %v", err)
+	}
+	p.Label = label.String()
+
+	return p, nil
+}
