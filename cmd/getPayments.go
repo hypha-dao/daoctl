@@ -43,7 +43,7 @@ var getPaymentsCmd = &cobra.Command{
 				return fmt.Errorf("cannot get all documents: %v", err)
 			}
 
-			zap.S().Debugf("retrieved payment documents from chain: %v", len(paymentDocs))
+			zlog.Debug("retrieved payment documents from chain", zap.Int("count", len(paymentDocs)))
 
 			typesOfFromNodes := make(map[eos.Name]int)
 			// var paymentRecords []paymentDocRecord
@@ -74,7 +74,7 @@ var getPaymentsCmd = &cobra.Command{
 				if err != nil {
 					return fmt.Errorf("cannot edges to payment with payment edge: %v", err)
 				}
-				zap.S().Debugf("loaded from edges for document: %v; edge count: %v", payment.Hash.String(), len(edgesTo))
+				zlog.Debug("loaded from edges for document", zap.String("payment-hash", payment.Hash.String()), zap.Int("edge-count", len(edgesTo)))
 
 				for _, edge := range edgesTo {
 					docFrom, err := docgraph.LoadDocument(ctx, api, contract, edge.FromNode.String())

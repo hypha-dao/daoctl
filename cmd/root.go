@@ -61,7 +61,7 @@ Hypha - Dapps for a New World - visit online @ hypha.earth`,
 // This is called by main.main(). It only needs to happen once to the RootCmd.
 func Execute() {
 	if err := RootCmd.Execute(); err != nil {
-		zlog.Fatal(err)
+		zlog.Fatal("fatal error on execute", zap.Error(err))
 	}
 }
 
@@ -105,11 +105,9 @@ func initConfig() {
 		viper.SetConfigName("daoctl")
 	}
 
-	InitLogger()
-
 	// If a config file is found, read it in.
 	if err := viper.ReadInConfig(); err == nil {
-		zap.S().Debugf("Using config file: %v", viper.ConfigFileUsed())
+		zlog.Debug("configuration file found", zap.String("file", viper.ConfigFileUsed()))
 	} else {
 		viper.ReadConfig(bytes.NewBuffer(yamlDefault))
 	}
@@ -127,7 +125,7 @@ func initConfig() {
 	colorReset := "\033[0m"
 	info, err := api.GetInfo(context.Background())
 	if err != nil {
-		zap.S().Fatal(string(colorRed) + "ERROR: Unable to get Hypha Blockchain Node info. Please check the EosioEndpoint configuration.")
+		zlog.Fatal(string(colorRed) + "ERROR: Unable to get Hypha Blockchain Node info. Please check the EosioEndpoint configuration.")
 	}
 
 	if hex.EncodeToString(info.ChainID) == "4667b205c6838ef70ff7988f6e8257e8be0e1284a2f59699054a018f743b1d11" {
