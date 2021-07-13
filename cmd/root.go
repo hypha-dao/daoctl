@@ -50,8 +50,10 @@ var RootCmd = &cobra.Command{
 Query and manage roles, assignments, periods, payouts, and proposals.
 
 Example use:
-	daoctl get assignments --include-proposals
+	daoctl get documents --type role
 	daoctl get treasury
+	daoctl get calendar
+	daoctl get document <hash>
 
 Hypha - Dapps for a New World - visit online @ hypha.earth`,
 	SilenceUsage: true,

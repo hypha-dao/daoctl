@@ -1,5 +1,5 @@
 
-### Build
+### Quickstart
 
 Install Go
 
@@ -35,17 +35,17 @@ HyperionEndpoint: https://testnet.telosusa.io/v2
 ```
 
 ## Commands
-### View Roles
+### View Documents
 ```
-./daoctl get roles
+./daoctl get documents
 ```
-#### Include proposals
+### View all Documents of a Type
 ```
-./daoctl get roles --include-proposals
+./daoctl get documents --type assignment
 ```
-### View Assignments
+### View a Specific Document and Subgraph
 ```
-./daoctl get payouts
+./daoctl get document <hash>
 ```
 ### View Treasury
 ```
@@ -59,10 +59,7 @@ HyperionEndpoint: https://testnet.telosusa.io/v2
 ```
 ./daoctl treasury get payments
 ```
-### View Details of a Ballot
-```
-./daoctl get ballot d4
-```
+
 
 ## Treasury Commands
 
@@ -76,4 +73,9 @@ Attesting to an existing payment. Treasurers have the responsibility of reviewin
 ```bash
 # in the below example, the paymentID is 4 and the requestID is 6
 ./daoctl --vault-file hyphanewyork.json treasury attest 4 6 "3500.00 HUSD" 
+```
+
+## Multisig Deployment Proposals
+```
+DEBUG=true ./daoctl propose deployment create --proposal-name testprop --commit d431c59dfd0fe284eee979965160fd326cae0e73 --developer hyphanewyork --notes "this is a test deployment proposal" --account dao.hypha --config daoctl-test.yaml --vault-file ../m.hypha.json 
 ```

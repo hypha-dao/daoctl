@@ -139,6 +139,8 @@ var proposeDeploymentCreateCmd = &cobra.Command{
 
 		eProp.ProposalName = eos.Name(proposalName)
 		eProp.Proposer = eos.AccountName(viper.GetString("DAOUser"))
+
+		// TODO: make this dynamic!
 		eProp.RequestedApprovals = []eos.PermissionLevel{
 			{
 				Actor:      "gh.hypha",
