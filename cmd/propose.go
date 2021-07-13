@@ -5,8 +5,8 @@ import (
 )
 
 var proposeCmd = &cobra.Command{
-	Use:   "propose [role]",
-	Short: "propose a role",
+	Use:   "propose",
+	Short: "manage proposals",
 }
 
 func init() {

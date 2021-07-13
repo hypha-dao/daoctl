@@ -6,61 +6,83 @@ import (
 	"time"
 
 	eos "github.com/eoscanada/eos-go"
+	"github.com/hypha-dao/document-graph/docgraph"
 )
 
 // Period represents a period of time aligning to a payroll period, typically a week
 type Period struct {
-	PeriodID  uint64             `json:"period_id"`
-	StartTime eos.BlockTimestamp `json:"start_date"`
-	EndTime   eos.BlockTimestamp `json:"end_date"`
-	Phase     string             `json:"phase"`
+	Label          string
+	StartTimePoint eos.TimePoint
+	StartTime      time.Time
+	Next           *Period
+	Document       docgraph.Document
 }
 
-// LoadPeriods loads the period data from the blockchain
-func LoadPeriods(api *eos.API, includePast, includeFuture bool) []Period {
+func NewPeriod(ctx context.Context, api *eos.API, contract eos.AccountName, doc docgraph.Document) (Period, error) {
+	p := Period{}
+	p.Document = doc
 
-	var periods []Period
-	var periodRequest eos.GetTableRowsRequest
-	periodRequest.Code = "dao.hypha"
-	periodRequest.Scope = "dao.hypha"
-	periodRequest.Table = "periods"
-	periodRequest.Limit = 1000
-	periodRequest.JSON = true
-
-	periodResponse, err := api.GetTableRows(context.Background(), periodRequest)
+	startTime, err := doc.GetContentFromGroup("details", "start_time")
 	if err != nil {
-		panic(err)
+		return Period{}, fmt.Errorf("get content failed: %v", err)
 	}
-
-	periodResponse.JSONToStructs(&periods)
-
-	var returnPeriods []Period
-	currentPeriod, err := CurrentPeriod(&periods)
-	if (includePast || includeFuture) && err != nil {
-		panic(err)
+	p.StartTimePoint, err = startTime.TimePoint()
+	if err != nil {
+		return Period{}, fmt.Errorf("get content failed: %v", err)
 	}
+	p.StartTime = time.Unix(int64(p.StartTimePoint)/1000000, 0).UTC()
+	// zlog.Debugf("Loading a period with a start date: %v", p.StartTime.Format("2006 Jan 02 15:04:05"))
 
-	for _, period := range periods {
-		if includePast || includeFuture {
-			if includePast && period.PeriodID <= uint64(currentPeriod) {
-				returnPeriods = append(returnPeriods, period)
-			} else if includeFuture && period.PeriodID >= uint64(currentPeriod) {
-				returnPeriods = append(returnPeriods, period)
-			}
+	label, err := doc.GetContentFromGroup("details", "label")
+	if err != nil {
+		return Period{}, fmt.Errorf("get content failed: %v", err)
+	}
+	p.Label = label.String()
+
+	nextEdges, err := docgraph.GetEdgesFromDocumentWithEdge(ctx, api, contract, doc, eos.Name("next"))
+	if err != nil {
+		return Period{}, fmt.Errorf("error while retrieving next edge: %v", err)
+	}
+	if len(nextEdges) == 0 {
+		// zlog.Debugf("There is no edge period, returning: %v", p.Document.Hash.String())
+		p.Next = nil
+		return p, nil
+	} else {
+		// zlog.Debugf("Loading the next period as: %v", nextEdges[0].ToNode.String())
+
+		nextDocument, err := docgraph.LoadDocument(ctx, api, contract, nextEdges[0].ToNode.String())
+		if err != nil {
+			return Period{}, fmt.Errorf("unable to load next edge: %v", err)
 		}
+		nextPeriod, err := NewPeriod(ctx, api, contract, nextDocument)
+		if err != nil {
+			return Period{}, fmt.Errorf("unable to create next Period: %v", err)
+		}
+		p.Next = &nextPeriod
 	}
-	return returnPeriods
+	return p, nil
 }
 
-// CurrentPeriod provides the period ID for the current date and time
-func CurrentPeriod(periods *[]Period) (int64, error) {
-	now := time.Now()
+func NewSinglePeriod(ctx context.Context, api *eos.API, contract eos.AccountName, doc docgraph.Document) (Period, error) {
+	p := Period{}
+	p.Document = doc
 
-	// assume that periods are in sorted
-	for _, period := range *periods {
-		if now.After(period.StartTime.Time) && now.Before(period.EndTime.Time) {
-			return int64(period.PeriodID), nil
-		}
+	startTime, err := doc.GetContentFromGroup("details", "start_time")
+	if err != nil {
+		return Period{}, fmt.Errorf("get content failed: %v", err)
 	}
-	return -1, fmt.Errorf("current time does not fall within a period")
+	p.StartTimePoint, err = startTime.TimePoint()
+	if err != nil {
+		return Period{}, fmt.Errorf("get content failed: %v", err)
+	}
+	p.StartTime = time.Unix(int64(p.StartTimePoint)/1000000, 0).UTC()
+	// zlog.Debugf("Loading a period with a start date: %v", p.StartTime.Format("2006 Jan 02 15:04:05"))
+
+	label, err := doc.GetContentFromGroup("details", "label")
+	if err != nil {
+		return Period{}, fmt.Errorf("get content failed: %v", err)
+	}
+	p.Label = label.String()
+
+	return p, nil
 }
