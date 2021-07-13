@@ -45,8 +45,8 @@ func configFileAction(ctx context.Context, configFilename string) *eos.Action {
 
 var setConfigCmd = &cobra.Command{
 	Use:   "config [-f filename] [-k config-key] [-v config-value]",
-	Short: "set the configuration based on a file OR a configuration key and value",
-	Long:  "set the configuration based on a file OR a configuration key and value",
+	Short: "OLD - DO NOT USE - set the configuration based on a file OR a configuration key and value",
+	Long:  "OLD - DO NOT USE - set the configuration based on a file OR a configuration key and value",
 
 	Run: func(cmd *cobra.Command, args []string) {
 		ctx := context.Background()

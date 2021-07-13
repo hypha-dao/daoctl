@@ -31,7 +31,7 @@ func NewPeriod(ctx context.Context, api *eos.API, contract eos.AccountName, doc 
 		return Period{}, fmt.Errorf("get content failed: %v", err)
 	}
 	p.StartTime = time.Unix(int64(p.StartTimePoint)/1000000, 0).UTC()
-	// zap.S().Debugf("Loading a period with a start date: %v", p.StartTime.Format("2006 Jan 02 15:04:05"))
+	// zlog.Debugf("Loading a period with a start date: %v", p.StartTime.Format("2006 Jan 02 15:04:05"))
 
 	label, err := doc.GetContentFromGroup("details", "label")
 	if err != nil {
@@ -44,11 +44,11 @@ func NewPeriod(ctx context.Context, api *eos.API, contract eos.AccountName, doc 
 		return Period{}, fmt.Errorf("error while retrieving next edge: %v", err)
 	}
 	if len(nextEdges) == 0 {
-		// zap.S().Debugf("There is no edge period, returning: %v", p.Document.Hash.String())
+		// zlog.Debugf("There is no edge period, returning: %v", p.Document.Hash.String())
 		p.Next = nil
 		return p, nil
 	} else {
-		// zap.S().Debugf("Loading the next period as: %v", nextEdges[0].ToNode.String())
+		// zlog.Debugf("Loading the next period as: %v", nextEdges[0].ToNode.String())
 
 		nextDocument, err := docgraph.LoadDocument(ctx, api, contract, nextEdges[0].ToNode.String())
 		if err != nil {
@@ -76,7 +76,7 @@ func NewSinglePeriod(ctx context.Context, api *eos.API, contract eos.AccountName
 		return Period{}, fmt.Errorf("get content failed: %v", err)
 	}
 	p.StartTime = time.Unix(int64(p.StartTimePoint)/1000000, 0).UTC()
-	// zap.S().Debugf("Loading a period with a start date: %v", p.StartTime.Format("2006 Jan 02 15:04:05"))
+	// zlog.Debugf("Loading a period with a start date: %v", p.StartTime.Format("2006 Jan 02 15:04:05"))
 
 	label, err := doc.GetContentFromGroup("details", "label")
 	if err != nil {

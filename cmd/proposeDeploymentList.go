@@ -24,20 +24,9 @@ var proposeDeploymentListCmd = &cobra.Command{
 	RunE: func(cmd *cobra.Command, args []string) error {
 		ctx := context.Background()
 
-		var deps []depProposal
-		var request eos.GetTableRowsRequest
-		request.Code = viper.GetString("MsigContract")
-		request.Scope = viper.GetString("MsigContract")
-		request.Table = "proposal"
-		request.JSON = true
-		response, err := getAPI().GetTableRows(ctx, request)
+		deps, err := getProposedDeployments()
 		if err != nil {
-			return fmt.Errorf("get table rows %v", err)
-		}
-
-		err = response.JSONToStructs(&deps)
-		if err != nil {
-			return fmt.Errorf("json to structs %v", err)
+			return fmt.Errorf("cannot get list of proposed deployments %v", err)
 		}
 
 		dT, err := depsTable(ctx, getAPI(), deps)

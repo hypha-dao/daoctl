@@ -17,7 +17,6 @@ import (
 	"github.com/manifoldco/promptui"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
-	"go.uber.org/zap"
 )
 
 const proposalNamePromptLabel = "Required: name of the proposal (eosio::name format)"
@@ -51,33 +50,33 @@ var proposeDeploymentCreateCmd = &cobra.Command{
 
 		proposalName, err := grabInput("propose-deployment-create-cmd-proposal-name", proposalNamePromptLabel)
 		if err != nil {
-			return fmt.Errorf("cannot clone repo: %v", err)
+			return fmt.Errorf("cannot get input: %v %v", proposalNamePromptLabel, err)
 		}
 
 		account, err := grabInput("propose-deployment-create-cmd-account", accountPromptLabel)
 		if err != nil {
-			return fmt.Errorf("cannot clone repo: %v", err)
+			return fmt.Errorf("cannot get input: %v %v", accountPromptLabel, err)
 		}
 
 		// TODO: query list of recent commits from github
 		commit, err := grabInput("propose-deployment-create-cmd-commit", commitPromptLabel)
 		if err != nil {
-			return fmt.Errorf("cannot clone repo: %v", err)
+			return fmt.Errorf("cannot get input: %v %v", commitPromptLabel, err)
 		}
 
 		developer, err := grabInput("propose-deployment-create-cmd-developer", developerPromptLabel)
 		if err != nil {
-			return fmt.Errorf("cannot clone repo: %v", err)
+			return fmt.Errorf("cannot get input: %v %v", developerPromptLabel, err)
 		}
 
 		document, err := grabInput("propose-deployment-create-cmd-document", existingDocumentLabel)
 		if err != nil {
-			return fmt.Errorf("cannot clone repo: %v", err)
+			return fmt.Errorf("cannot get input: %v %v", existingDocumentLabel, err)
 		}
 
 		notes, err := grabInput("propose-deployment-create-cmd-notes", notesPromptLabel)
 		if err != nil {
-			return fmt.Errorf("cannot clone repo: %v", err)
+			return fmt.Errorf("cannot get input: %v %v", notesPromptLabel, err)
 		}
 
 		accountToDeploy := eos.AN(account)
@@ -86,7 +85,7 @@ var proposeDeploymentCreateCmd = &cobra.Command{
 		if err != nil {
 			return fmt.Errorf("cannot create a temporary directory: %v", err)
 		}
-		zap.S().Info("creating temp directory to build contract: " + dir)
+		zlog.Info("creating temp directory to build contract: " + dir)
 
 		repo, err := git.PlainClone(dir, false, &git.CloneOptions{
 			URL:               viper.GetString("DAORepo"),
@@ -107,13 +106,13 @@ var proposeDeploymentCreateCmd = &cobra.Command{
 		if err != nil {
 			return fmt.Errorf("cannot access the repo HEAD: %v", err)
 		}
-		zap.S().Info("current repo HEAD " + ref.Hash().String())
+		zlog.Info("current repo HEAD " + ref.Hash().String())
 
 		w, err := repo.Worktree()
 		if err != nil {
 			return fmt.Errorf("cannot access the repo Worktree: %v", err)
 		}
-		zap.S().Info("executing a checkout of commit: " + commit)
+		zlog.Info("executing a checkout of commit: " + commit)
 
 		err = w.Checkout(&git.CheckoutOptions{
 			Hash: plumbing.NewHash(commit),
@@ -124,18 +123,25 @@ var proposeDeploymentCreateCmd = &cobra.Command{
 
 		cmake := exec.Command("cmake", dir)
 		cmake.Dir = buildDir
-		zap.S().Info("running cmake - " + cmake.String())
+		zlog.Info("running cmake - " + cmake.String())
 		cmake.Run()
 
 		make := exec.Command("make", "-j"+strconv.Itoa(runtime.NumCPU()))
 		make.Dir = buildDir
-		zap.S().Info("running make to build contracts - " + make.String())
+		zlog.Info("running make to build contracts - " + make.String())
 		make.Run()
 
-		d := deployment{}
-		d.ProposalName = eos.Name(proposalName)
-		d.Proposer = eos.AccountName(viper.GetString("DAOUser"))
-		d.RequestedApprovals = []eos.PermissionLevel{
+		hProp := hyphaProposal{}
+		eProp := eosioProposal{}
+
+		hProp.ProposalName = eos.Name(proposalName)
+		hProp.Proposer = eos.AccountName(viper.GetString("DAOUser"))
+
+		eProp.ProposalName = eos.Name(proposalName)
+		eProp.Proposer = eos.AccountName(viper.GetString("DAOUser"))
+
+		// TODO: make this dynamic!
+		eProp.RequestedApprovals = []eos.PermissionLevel{
 			{
 				Actor:      "gh.hypha",
 				Permission: "active",
@@ -157,7 +163,8 @@ var proposeDeploymentCreateCmd = &cobra.Command{
 				Permission: "active",
 			},
 		}
-		d.ContentGroups = []docgraph.ContentGroup{{
+
+		hProp.ContentGroups = []docgraph.ContentGroup{{
 			docgraph.ContentItem{
 				Label: "content_group_name",
 				Value: &docgraph.FlexValue{
@@ -221,19 +228,29 @@ var proposeDeploymentCreateCmd = &cobra.Command{
 		}
 
 		setCodeActions := []*eos.Action{setCodeAction, setAbiAction}
-		d.Transaction = eos.NewTransaction(setCodeActions, txOpts)
+		eProp.Transaction = eos.NewTransaction(setCodeActions, txOpts)
 
 		oneHour, _ := time.ParseDuration("1h")
-		d.Transaction.SetExpiration(oneHour * 24 * 7)
+		eProp.Transaction.SetExpiration(oneHour * 24 * 7)
 
-		actions := []*eos.Action{{
-			Account: eos.AN(viper.GetString("MsigContract")),
-			Name:    eos.ActN("propose"),
-			Authorization: []eos.PermissionLevel{
-				{Actor: eos.AN(viper.GetString("DAOUser")), Permission: eos.PN("active")},
+		actions := []*eos.Action{
+			{
+				Account: eos.AN("eosio.msig"),
+				Name:    eos.ActN("propose"),
+				Authorization: []eos.PermissionLevel{
+					{Actor: eos.AN(viper.GetString("DAOUser")), Permission: eos.PN("active")},
+				},
+				ActionData: eos.NewActionData(eProp),
 			},
-			ActionData: eos.NewActionData(d),
-		}}
+			{
+				Account: eos.AN(viper.GetString("MsigContract")),
+				Name:    eos.ActN("propose"),
+				Authorization: []eos.PermissionLevel{
+					{Actor: eos.AN(viper.GetString("DAOUser")), Permission: eos.PN("active")},
+				},
+				ActionData: eos.NewActionData(hProp),
+			},
+		}
 
 		// msigTrx, err := json.MarshalIndent(d, "", "  ")
 		// if err != nil {
@@ -242,7 +259,7 @@ var proposeDeploymentCreateCmd = &cobra.Command{
 
 		// _ = ioutil.WriteFile("msig-transaction.json", msigTrx, 0644)
 
-		pushEOSCActions(ctx, api, actions[0])
+		pushEOSCActions(ctx, api, actions[0], actions[1])
 		return nil
 	},
 }

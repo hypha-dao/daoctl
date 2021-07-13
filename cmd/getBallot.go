@@ -20,8 +20,8 @@ import (
 
 var getBallotCmd = &cobra.Command{
 	Use:   "ballot [ballot name]",
-	Short: "retrieve ballot details",
-	Long:  "retrieve the ballot times, voters, voting selections, and quorum info",
+	Short: "OLD - telos decide only - retrieve ballot details",
+	Long:  "OLD - telos decide only - retrieve the ballot times, voters, voting selections, and quorum info",
 	Args:  cobra.RangeArgs(1, 1),
 	Run: func(cmd *cobra.Command, args []string) {
 		api := eos.New(viper.GetString("EosioEndpoint"))

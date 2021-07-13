@@ -5,6 +5,7 @@ go 1.16
 require (
 	github.com/alexeyco/simpletable v0.0.0-20200730140406-5bb24159ccfb
 	github.com/bronze1man/go-yaml2json v0.0.0-20150129175009-f6f64b738964
+	github.com/dfuse-io/logging v0.0.0-20210518215502-2d920b2ad1f2
 	github.com/eoscanada/eos-go v0.9.1-0.20200805141443-a9d5402a7bc5
 	github.com/eoscanada/eosc v1.4.0
 	github.com/go-git/go-git/v5 v5.2.0
