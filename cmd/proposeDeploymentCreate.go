@@ -2,7 +2,9 @@ package cmd
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
+	"io/ioutil"
 	"os"
 	"os/exec"
 	"runtime"
@@ -121,15 +123,21 @@ var proposeDeploymentCreateCmd = &cobra.Command{
 			return fmt.Errorf("unable to checkout to commit %v", err)
 		}
 
-		cmake := exec.Command("cmake", dir)
+		cmake := exec.Command("cmake", "-S", dir, "-B", buildDir)
 		cmake.Dir = buildDir
 		zlog.Info("running cmake - " + cmake.String())
-		cmake.Run()
+		err = cmake.Run()
+		if err != nil {
+			return fmt.Errorf("cmake failed - do you have cmake installed? %v", err)
+		}
 
-		make := exec.Command("make", "-j"+strconv.Itoa(runtime.NumCPU()))
+		make := exec.Command("make", "-j"+strconv.Itoa(runtime.NumCPU()), "--directory", buildDir)
 		make.Dir = buildDir
 		zlog.Info("running make to build contracts - " + make.String())
-		make.Run()
+		err = make.Run()
+		if err != nil {
+			return fmt.Errorf("make failed %v", err)
+		}
 
 		hProp := hyphaProposal{}
 		eProp := eosioProposal{}
@@ -143,23 +151,35 @@ var proposeDeploymentCreateCmd = &cobra.Command{
 		// TODO: make this dynamic!
 		eProp.RequestedApprovals = []eos.PermissionLevel{
 			{
-				Actor:      "gh.hypha",
+				Actor:      "gerard5ph321",
 				Permission: "active",
 			},
 			{
-				Actor:      "m.hypha",
+				Actor:      "hyphanewyork",
 				Permission: "active",
 			},
 			{
-				Actor:      "j.hypha",
+				Actor:      "s.tk",
 				Permission: "active",
 			},
 			{
-				Actor:      "jj.hypha",
+				Actor:      "illumination",
 				Permission: "active",
 			},
 			{
-				Actor:      "l.hypha",
+				Actor:      "joachimstroh",
+				Permission: "active",
+			},
+			{
+				Actor:      "thealchemist",
+				Permission: "active",
+			},
+			{
+				Actor:      "leonieherma1",
+				Permission: "active",
+			},
+			{
+				Actor:      "lukegravdent",
 				Permission: "active",
 			},
 		}
@@ -252,14 +272,14 @@ var proposeDeploymentCreateCmd = &cobra.Command{
 			},
 		}
 
-		// msigTrx, err := json.MarshalIndent(d, "", "  ")
-		// if err != nil {
-		// 	return fmt.Errorf("cannot marshal object to json: %s", err)
-		// }
+		outputData, err := json.MarshalIndent(actions[1], "", "  ")
+		if err != nil {
+			return fmt.Errorf("cannot marshal object to json: %s", err)
+		}
 
-		// _ = ioutil.WriteFile("msig-transaction.json", msigTrx, 0644)
+		_ = ioutil.WriteFile("msig-transaction.json", outputData, 0644)
 
-		pushEOSCActions(ctx, api, actions[0], actions[1])
+		// pushEOSCActions(ctx, api, actions[0], actions[1])
 		return nil
 	},
 }
