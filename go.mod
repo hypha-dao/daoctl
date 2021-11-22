@@ -22,8 +22,8 @@ require (
 	github.com/spf13/cobra v1.1.1
 	github.com/spf13/pflag v1.0.5
 	github.com/spf13/viper v1.7.1
-	github.com/tidwall/gjson v1.6.3
-	github.com/tidwall/pretty v1.0.2
+	github.com/tidwall/gjson v1.11.0
+	github.com/tidwall/pretty v1.2.0
 	github.com/tidwall/sjson v1.1.2
 	go.uber.org/zap v1.16.0
 	golang.org/x/crypto v0.0.0-20210220033148-5ea612d1eb83
