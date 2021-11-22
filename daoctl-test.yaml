@@ -1,4 +1,4 @@
-EosioEndpoint: https://test.telos.kitchen
+EosioEndpoint: https://testnet.telos.caleos.io
 DAOContract: dao.hypha
 MsigContract: msig.hypha
 Treasury:

@@ -2,9 +2,7 @@ package cmd
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
-	"io/ioutil"
 	"os"
 	"os/exec"
 	"runtime"
@@ -272,14 +270,14 @@ var proposeDeploymentCreateCmd = &cobra.Command{
 			},
 		}
 
-		outputData, err := json.MarshalIndent(actions[1], "", "  ")
-		if err != nil {
-			return fmt.Errorf("cannot marshal object to json: %s", err)
-		}
+		// outputData, err := json.MarshalIndent(hProp, "", "  ")
+		// if err != nil {
+		// 	return fmt.Errorf("cannot marshal object to json: %s", err)
+		// }
 
-		_ = ioutil.WriteFile("msig-transaction.json", outputData, 0644)
+		// _ = ioutil.WriteFile("msig-transaction.json", outputData, 0644)
 
-		// pushEOSCActions(ctx, api, actions[0], actions[1])
+		pushEOSCActions(ctx, api, actions[0], actions[1])
 		return nil
 	},
 }

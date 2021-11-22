@@ -22,3 +22,5 @@ HyphaSeedsAccount: hypha.seeds
 SeedsTokenContract: token.seeds
 global-debug: false
 CalendarStart: 7706e72c29af438f309a99391fa8e8e3dcef0db438d0d24daf6fc4cf29697bff
+MsigContract: msig.hypha
+DAOUser: hyphanewyork
