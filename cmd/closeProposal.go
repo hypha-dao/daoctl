@@ -38,5 +38,5 @@ var closeCmd = &cobra.Command{
 
 func init() {
 	RootCmd.AddCommand(closeCmd)
-	// closeCmd.Flags().IntP("proposal_id", "p", -1, "proposal ID to be closed")
+	closeCmd.Flags().BoolP("all", "a", false, "attempt to close all open proposals")
 }

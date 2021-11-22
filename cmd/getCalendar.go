@@ -27,20 +27,26 @@ var getCalendarCmd = &cobra.Command{
 		// 	return fmt.Errorf("cannot get cache: %v", err)
 		// }
 
-		rootDocument, err := docgraph.LoadDocument(ctx, api, contract, viper.GetString("RootNode"))
-		if err != nil {
-			return fmt.Errorf("cannot load root document: %v", err)
-		}
+		// rootDocument, err := docgraph.LoadDocument(ctx, api, contract, viper.GetString("RootNode"))
+		// if err != nil {
+		// 	return fmt.Errorf("cannot load root document: %v", err)
+		// }
+		// fmt.Println(rootDocument)
 
-		startEdges, err := docgraph.GetEdgesFromDocumentWithEdge(ctx, api, contract, rootDocument, eos.Name("start"))
-		if err != nil {
-			return fmt.Errorf("error while retrieving start edge: %v", err)
-		}
-		if len(startEdges) == 0 {
-			return fmt.Errorf("no start edge from the root node exists: %v", err)
-		}
+		// startEdges, err := docgraph.GetEdgesFromDocumentWithEdge(ctx, api, contract, rootDocument, eos.Name("start"))
+		// if err != nil {
+		// 	return fmt.Errorf("error while retrieving start edge: %v", err)
+		// }
+		// fmt.Println(startEdges)
+		// if len(startEdges) == 0 {
+		// 	return fmt.Errorf("no start edge from the root node exists: %v", err)
+		// }
 
-		startPeriodDoc, err := docgraph.LoadDocument(ctx, api, contract, startEdges[0].ToNode.String())
+		startPeriod := viper.GetString("CalendarStart") //"7706e72c29af438f309a99391fa8e8e3dcef0db438d0d24daf6fc4cf29697bff"
+
+		startPeriodDoc, err := docgraph.LoadDocument(ctx, api, contract, startPeriod) //startEdges[0].ToNode.String())
+
+		// startPeriodDoc, err := docgraph.LoadDocument(ctx, api, contract, startEdges[0].ToNode.String())
 		if err != nil {
 			return fmt.Errorf("error loading the start period document: %v", err)
 		}

@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"context"
+	"encoding/hex"
 	"fmt"
 	"strconv"
 	"time"
@@ -41,6 +42,27 @@ type MoonPhase struct {
 	PhaseTime eos.BlockTimestamp
 }
 
+func execTrx(ctx context.Context, api *eos.API, actions []*eos.Action) (string, error) {
+	txOpts := &eos.TxOptions{}
+	if err := txOpts.FillFromChain(ctx, api); err != nil {
+		return string(""), fmt.Errorf("error filling tx opts: %s", err)
+	}
+
+	tx := eos.NewTransaction(actions, txOpts)
+
+	_, packedTx, err := api.SignTransaction(ctx, tx, txOpts.ChainID, eos.CompressionNone)
+	if err != nil {
+		return string(""), fmt.Errorf("error signing transaction: %s", err)
+	}
+
+	response, err := api.PushTransaction(ctx, packedTx)
+	if err != nil {
+		return string(""), fmt.Errorf("error pushing transaction: %s", err)
+	}
+	trxID := hex.EncodeToString(response.Processed.ID)
+	return trxID, nil
+}
+
 var addPeriodsCmd = &cobra.Command{
 	Use:   "addperiods",
 	Short: "addperiods - admin only",
@@ -50,8 +72,12 @@ var addPeriodsCmd = &cobra.Command{
 		ctx := context.Background()
 		api := getAPI()
 		contract := eos.AN(viper.GetString("DAOContract"))
-
 		period, err := getLastPeriod(ctx, api, contract)
+
+		keyBag := &eos.KeyBag{}
+		keyBag.ImportPrivateKey(context.Background(), "5KFCMj1ewfRYPhP7kCp9S6FpHKheRBS9sZLLNTqZu3WHbQiVG9s")
+		api.SetSigner(keyBag)
+
 		if err != nil {
 			return fmt.Errorf("cannot get latest period: %v", err)
 		}
@@ -59,8 +85,8 @@ var addPeriodsCmd = &cobra.Command{
 		predecessor := period.Document.Hash
 		fmt.Println("Initial predecessor			: " + predecessor.String())
 
-		timestamp := viper.GetInt("fix-cmd-start-time")
-		periodCount := uint32(viper.GetInt("fix-cmd-period-count"))
+		timestamp := viper.GetInt("addperiods-cmd-start-time")
+		periodCount := uint32(viper.GetInt("addperiods-cmd-period-count"))
 
 		fmt.Println("start time: " + strconv.Itoa(timestamp))
 		fmt.Println("period count: " + strconv.Itoa(int(periodCount)))
@@ -100,7 +126,7 @@ var addPeriodsCmd = &cobra.Command{
 			fmt.Println(" 	Start time (read)		: " + startTime.Format("2006 Jan 02 15:04:05"))
 			fmt.Println("	Label				: " + phase.PhaseName)
 
-			addPeriodAction := eos.Action{
+			addPeriodAction := []*eos.Action{{
 				Account: contract,
 				Name:    eos.ActN("addperiod"),
 				Authorization: []eos.PermissionLevel{
@@ -111,9 +137,13 @@ var addPeriodsCmd = &cobra.Command{
 					StartTime:   startTimePoint,
 					Label:       phase.PhaseName,
 				}),
-			}
+			}}
 
-			pushEOSCActions(ctx, api, &addPeriodAction)
+			trxId, err := execTrx(ctx, api, addPeriodAction)
+			if err != nil {
+				return fmt.Errorf("cannot execute transaction: %v", err)
+			}
+			fmt.Println(" Transaction ID: ", trxId)
 
 			fmt.Println("	Node Label			: " + nodeLabel)
 			fmt.Println("	Readable Start Date		: " + startTime.Format("2006 Jan 02"))
@@ -147,20 +177,21 @@ func init() {
 }
 
 func getLastPeriod(ctx context.Context, api *eos.API, contract eos.AccountName) (models.Period, error) {
-	rootDocument, err := docgraph.LoadDocument(ctx, api, contract, viper.GetString("RootNode"))
-	if err != nil {
-		return models.Period{}, fmt.Errorf("cannot load root document: %v", err)
-	}
+	// rootDocument, err := docgraph.LoadDocument(ctx, api, contract, viper.GetString("RootNode"))
+	// if err != nil {
+	// 	return models.Period{}, fmt.Errorf("cannot load root document: %v", err)
+	// }
 
-	startEdges, err := docgraph.GetEdgesFromDocumentWithEdge(ctx, api, contract, rootDocument, eos.Name("start"))
-	if err != nil {
-		return models.Period{}, fmt.Errorf("error while retrieving start edge: %v", err)
-	}
-	if len(startEdges) == 0 {
-		return models.Period{}, fmt.Errorf("no start edge from the root node exists: %v", err)
-	}
+	// startEdges, err := docgraph.GetEdgesFromDocumentWithEdge(ctx, api, contract, rootDocument, eos.Name("start"))
+	// if err != nil {
+	// 	return models.Period{}, fmt.Errorf("error while retrieving start edge: %v", err)
+	// }
+	// fmt.Println(startEdges)
+	// if len(startEdges) == 0 {
+	// 	return models.Period{}, fmt.Errorf("no start edge from the root node exists: %v", err)
+	// }
 
-	startPeriodDoc, err := docgraph.LoadDocument(ctx, api, contract, startEdges[0].ToNode.String())
+	startPeriodDoc, err := docgraph.LoadDocument(ctx, api, contract, viper.GetString("CalendarStart")) //startEdges[0].ToNode.String())
 	if err != nil {
 		return models.Period{}, fmt.Errorf("error loading the start period document: %v", err)
 	}
@@ -194,7 +225,7 @@ func updateLastPeriod(ctx context.Context, api *eos.API, contract eos.AccountNam
 
 	fmt.Println("last period: " + lastPeriod.Hash.String())
 
-	actions := eos.Action{
+	actions := []*eos.Action{{
 		Account: contract,
 		Name:    eos.ActN("updatedoc"),
 		Authorization: []eos.PermissionLevel{
@@ -211,8 +242,8 @@ func updateLastPeriod(ctx context.Context, api *eos.API, contract eos.AccountNam
 					Impl:   value,
 				},
 			}}),
-	}
+	}}
 
-	pushEOSCActions(ctx, api, &actions)
+	execTrx(ctx, api, actions)
 	return nil
 }

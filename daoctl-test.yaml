@@ -1,4 +1,4 @@
-EosioEndpoint: https://test.telos.kitchen
+EosioEndpoint: https://testnet.telos.caleos.io
 DAOContract: dao.hypha
 MsigContract: msig.hypha
 Treasury:
@@ -21,3 +21,4 @@ EscrowContract: escrow.seeds
 HyphaSeedsAccount: hypha.seeds
 DAORepo: https://github.com/hypha-dao/dao-contracts
 RootNode: 52a7ff82bd6f53b31285e97d6806d886eefb650e79754784e9d923d3df347c91
+CalendarStart: 09c4a000153ba36bf018089dc8411904c36a8fbd2c2c860f179c0c509e2f029a
