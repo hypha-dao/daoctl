@@ -26,7 +26,7 @@ require (
 	github.com/tidwall/pretty v1.2.0
 	github.com/tidwall/sjson v1.1.2
 	go.uber.org/zap v1.16.0
-	golang.org/x/crypto v0.0.0-20210220033148-5ea612d1eb83
+	golang.org/x/crypto v0.1.0
 	golang.org/x/oauth2 v0.0.0-20190604053449-0f29369cfe45
 	google.golang.org/api v0.13.0
 	gopkg.in/yaml.v2 v2.3.0
